@@ -2,7 +2,8 @@ AWS Observability Collector is Certified Amazon distribution of OpenTelemetry Co
 
 ### Usage
 ```
-./main --config ../../default-config.yaml
+make run
+```
 
  
 
