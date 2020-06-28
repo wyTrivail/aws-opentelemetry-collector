@@ -1,32 +1,39 @@
 #!/usr/bin/env bash
+
+set -e
 echo "*************************************************"
-echo "Creating rpm file for Amazon Linux and RHEL amd64"
+echo "Creating rpm file for Amazon Linux and RHEL, Arch: ${ARCH}"
 echo "*************************************************"
 
-SPEC_FILE="${BGO_SPACE}/tools/packaging/linux/build.amd64.spec"
-BUILD_ROOT="${BGO_SPACE}/bin/linux_amd64/linux"
-
-rm -rf ${BGO_SPACE}/bin/linux_amd64/linux
+SPEC_FILE="tools/packaging/linux/build.spec"
+BUILD_ROOT="`pwd`/build/rpmbuild"
+WORK_DIR="`pwd`/build/rpmtar"
+VERSION=`cat VERSION`
 
 echo "Creating rpmbuild workspace"
-mkdir -p ${BUILD_ROOT}/rpmbuild/{RPMS,SRPMS,BUILD,COORD_SOURCES,SPECS,DATA_SOURCES}
-mkdir -p ${BUILD_ROOT}/usr/bin/
-mkdir -p ${BUILD_ROOT}/etc/amazon/xray/
-mkdir -p ${BUILD_ROOT}/etc/init/
-mkdir -p ${BUILD_ROOT}/etc/systemd/system/
+mkdir -p ${BUILD_ROOT}/{RPMS,SRPMS,BUILD,SOURCES,SPECS}
+mkdir -p ${WORK_DIR}/aoc-${VERSION}/opt/aws/aws-opentelemetry-collector/logs
+mkdir -p ${WORK_DIR}/aoc-${VERSION}/opt/aws/aws-opentelemetry-collector/bin
+mkdir -p ${WORK_DIR}/aoc-${VERSION}/opt/aws/aws-opentelemetry-collector/etc
+mkdir -p ${WORK_DIR}/aoc-${VERSION}/opt/aws/aws-opentelemetry-collector/var
+mkdir -p ${WORK_DIR}/aoc-${VERSION}/opt/aws/aws-opentelemetry-collector/doc
+mkdir -p ${WORK_DIR}/aoc-${VERSION}/etc/init
+mkdir -p ${WORK_DIR}/aoc-${VERSION}/etc/systemd/system/
 
 echo "Copying application files"
-cp ${BGO_SPACE}/build/linux/aoc_linux_amd64 ${BGO_SPACE}/bin/linux_amd64/linux/usr/bin/
-cp ${BGO_SPACE}/config.yaml ${BGO_SPACE}/bin/linux_amd64/linux/etc/amazon/xray/cfg.yaml
-cp ${BGO_SPACE}/Tool/src/packaging/linux/xray.conf ${BGO_SPACE}/bin/linux_amd64/linux/etc/init/
-cp ${BGO_SPACE}/Tool/src/packaging/linux/xray.service ${BGO_SPACE}/bin/linux_amd64/linux/etc/systemd/system/
-cp ${BGO_SPACE}/LICENSE ${BGO_SPACE}/bin/linux_amd64/linux/etc/amazon/xray/
-cp ${BGO_SPACE}/THIRD-PARTY-LICENSES.txt ${BGO_SPACE}/bin/linux_amd64/linux/etc/amazon/xray/
+cp LICENSE ${WORK_DIR}/aoc-${VERSION}/opt/aws/aws-opentelemetry-collector/
+cp VERSION ${WORK_DIR}/aoc-${VERSION}/opt/aws/aws-opentelemetry-collector/bin/
+cp build/linux/aoc_linux_${ARCH} ${WORK_DIR}/aoc-${VERSION}/opt/aws/aws-opentelemetry-collector/bin/aoc
+chmod ug+rx ${WORK_DIR}/aoc-${VERSION}/opt/aws/aws-opentelemetry-collector/bin/aoc
+
+echo "build source tarball"
+tar -czvf aoc-${VERSION}.tar.gz -C ${WORK_DIR} .
+mv aoc-${VERSION}.tar.gz ${BUILD_ROOT}/SOURCES/
+rm -rf ${WORK_DIR}
 
 echo "Creating the rpm package"
-SPEC_FILE="${BGO_SPACE}/Tool/src/packaging/linux/xray.spec"
-BUILD_ROOT="${BGO_SPACE}/bin/linux_amd64/linux"
-setarch x86_64 rpmbuild --define "rpmversion `cat ${BGO_SPACE}/VERSION`" --define "_topdir bin/linux_amd64/linux/rpmbuild" -bb --buildroot ${BUILD_ROOT} ${SPEC_FILE}
+rpmbuild --define "VERSION $VERSION" --define "_topdir ${BUILD_ROOT}" -bb -v --clean ${SPEC_FILE} --target ${ARCH}
 
-echo "Copying rpm files to bin"
-cp ${BGO_SPACE}/bin/linux_amd64/linux/rpmbuild/RPMS/x86_64/*.rpm ${BGO_SPACE}/build/xray/aws-xray-daemon-`cat ${BGO_SPACE}/VERSION`.rpm
+echo "Copy rpm file to ${DEST}"
+mkdir -p ${DEST}
+cp ${BUILD_ROOT}/RPMS/${ARCH}/aoc-${VERSION}-1.${ARCH}.rpm ${DEST}/aoc.rpm

@@ -1,3 +1,9 @@
+# Ignore Intellij Idea generated files
 .idea/*
-/bin
-/build
+
+# Ignore Build directory
+build
+
+# Ignore tmp files
+*.swap
+*.swp
