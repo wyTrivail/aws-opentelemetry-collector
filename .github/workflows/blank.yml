@@ -29,10 +29,10 @@ jobs:
       run: make build
 
     # Archive binaries
-    - name: Upload binaries
-      uses: actions/upload-artifact@v2
+    - name: Cache binaries
+      uses: actions/cache@v2
       with:
-        name: built_artifact
+        key: cached_binaries
         path: build
 
   package-rpm:
@@ -40,10 +40,10 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
-      - name: Download built artifacts
-        uses: actions/download-artifact@v2
+      - name: Get built artifacts
+        uses: actions/cache@v2
         with:
-          name: built_artifact
+          name: cached_binaries
           path: build
           
       - name: Build RPM
