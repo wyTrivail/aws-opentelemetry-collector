@@ -36,7 +36,7 @@ mv ${RPM_NAME}-${VERSION}.tar.gz ${BUILD_ROOT}/SOURCES/
 rm -rf ${WORK_DIR}
 
 echo "Creating the rpm package"
-rpmbuild --define "VERSION $VERSION RPM_NAME $RPM_NAME" --define "_topdir ${BUILD_ROOT}" -bb -v --clean ${SPEC_FILE} --target ${ARCH}
+rpmbuild --define "VERSION $VERSION" --define "RPM_NAME $RPM_NAME" --define "_topdir ${BUILD_ROOT}" -bb -v --clean ${SPEC_FILE} --target ${ARCH}
 
 echo "Copy rpm file to ${DEST}"
 mkdir -p ${DEST}

@@ -4,7 +4,7 @@ Version:    %{VERSION}
 Release:    1
 License:    Amazon Software License. Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 Group:      Applications/AWS
-Source0:    aoc-%{VERSION}.tar.gz
+Source0:    %{RPM_NAME}-%{VERSION}.tar.gz
 
 %description
 This package provides daemon of AWS Opentelemetry Collector
