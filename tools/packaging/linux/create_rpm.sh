@@ -36,4 +36,4 @@ rpmbuild --define "VERSION $VERSION" --define "_topdir ${BUILD_ROOT}" -bb -v --c
 
 echo "Copy rpm file to ${DEST}"
 mkdir -p ${DEST}
-cp ${BUILD_ROOT}/RPMS/${ARCH}/aoc-${VERSION}-1.${ARCH}.rpm ${DEST}/aoc.rpm
+cp ${BUILD_ROOT}/RPMS/${ARCH}/aoc-${VERSION}-1.${ARCH}.rpm ${DEST}/aws-opentelemetry-collector.rpm
