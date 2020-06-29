@@ -25,3 +25,35 @@ jobs:
     # Runs a single command using the runners shell
     - name: Build Binaries
       run: make build
+
+    # Archive binaries
+    - name: Upload binaries
+      uses: actions/upload-artifact@v2
+      with:
+        name: built_artifact
+        path: build
+
+  package-rpm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download built artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: built_artifact
+          
+      - name: Build RPM
+        run: |
+          ARCH=x86_64 DEST=build/packages/linux/amd64 tools/packaging/linux/create_rpm.sh
+          ARCH=aarch64 DEST=build/packages/linux/arm64 tools/packaging/linux/create_rpm.sh
+          
+      - name: Upload
+        uses: actions/upload-artifact@v2
+        with:
+          name: rpm_artifact
+          path: build/packages
+
+  
+
+      
+        
