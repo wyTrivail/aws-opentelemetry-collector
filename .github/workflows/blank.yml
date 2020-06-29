@@ -40,10 +40,10 @@ jobs:
     needs: build
     steps:
       - uses: actions/checkout@v2
-      - name: Get built artifacts
+      - name: restore cached binaries
         uses: actions/cache@v2
         with:
-          name: cached_binaries
+          key: cached_binaries
           path: build
           
       - name: Build RPM
