@@ -1,5 +1,5 @@
 Summary:    AWS Opentelemetry Collector
-Name:       aoc
+Name:       %{RPM_NAME}
 Version:    %{VERSION}
 Release:    1
 License:    Amazon Software License. Copyright 2017 Amazon.com, Inc. or its affiliates. All Rights Reserved.
