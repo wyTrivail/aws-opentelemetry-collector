@@ -1,8 +1,10 @@
 # Ignore Intellij Idea generated files
 .idea/*
+.idea/aws-opentelemetry-collector.iml
 
 # Ignore Build directory
 build
+bin
 
 # Ignore tmp files
 *.swap
