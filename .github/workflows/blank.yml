@@ -54,7 +54,7 @@ jobs:
       - name: Cache rpms
         uses: actions/cache@v2
         with:
-          name: cached_rpms
+          key: cached_rpms
           path: build/packages
 
   release-to-test-stack:
