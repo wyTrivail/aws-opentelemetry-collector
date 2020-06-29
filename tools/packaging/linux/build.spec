@@ -13,7 +13,9 @@ This package provides daemon of AWS Opentelemetry Collector
 %setup -q
 
 %install
-cp -rfa * %{buildroot}
+rm -rf ${RPM_BUILD_ROOT}
+mkdir -p ${RPM_BUILD_ROOT}
+cp -rfa * ${RPM_BUILD_ROOT}
 
 %files
 %dir /opt/aws
@@ -33,3 +35,6 @@ cp -rfa * %{buildroot}
 #/etc/amazon/aws-opentelemetry-collector
 #/var/log/amazon/aws-opentelemetry-collector
 #/var/run/amazon/aws-opentelemetry-collector
+
+%clean
+rm -rf ${RPM_BUILD_ROOT}
