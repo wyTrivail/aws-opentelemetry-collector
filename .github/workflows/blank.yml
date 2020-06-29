@@ -32,7 +32,7 @@ jobs:
     - name: Cache binaries
       uses: actions/cache@v2
       with:
-        key: cached_binaries_${{ GITHUB_SHA }}
+        key: "cached_binaries_${{ github.sha }}"
         path: build
 
   package-rpm:
@@ -43,7 +43,7 @@ jobs:
       - name: restore cached binaries
         uses: actions/cache@v2
         with:
-          key: cached_binaries_${{ GITHUB_SHA }}
+          key: "cached_binaries_${{ github.sha}}"
           path: build
           
       - name: Build RPM
@@ -54,7 +54,7 @@ jobs:
       - name: Cache rpms
         uses: actions/cache@v2
         with:
-          key: cached_rpms_${{ GITHUB_SHA }}
+          key: "cached_rpms_${{ github.sha }}"
           path: build/packages
 
   release-to-test-stack:
@@ -74,7 +74,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build/packages
-          key: cached_rpms_${{ GITHUB_SHA }}
+          key: "cached_rpms_${{ github.sha }}"
 
       - name: versioning
         run: |
