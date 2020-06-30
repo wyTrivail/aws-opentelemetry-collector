@@ -1,4 +1,4 @@
-#Overview
+### Overview
 AWS Observability Collector is Certified Amazon distribution of OpenTelemetry Collectors.
 
 ### Run Demos
