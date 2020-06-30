@@ -2,7 +2,7 @@ AWS Observability Collector is Certified Amazon distribution of OpenTelemetry Co
 
 ### Usage
 ```
-make run
+make docker-run
 ```
 
 ###  
