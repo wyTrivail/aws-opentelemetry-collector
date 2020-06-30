@@ -3,7 +3,8 @@ AWS Observability Collector is Certified Amazon distribution of OpenTelemetry Co
 
 ### Run Demos
 The provided example will bring up AOC agent instance and send Jaeger traces and OpenTelemetry Metrics to AOC. You can view Trace and Metric result on AWS X-Ray, Jaeger and CloudWatch Metric consoles. 
-Edit ```docker-composite.yaml``` in ```examples``` folder
+#### Steps,
+1. Edit ```docker-composite.yaml``` in ```examples``` folder. add your own ```AWS_ACCESS_KEY_ID``` and ```AWS_SECRET_ACCESS_KEY``` in the config. The default region is ```us-west-2```.
 ```yaml
   # Agent
   aws-ot-collector:
@@ -23,14 +24,15 @@ Edit ```docker-composite.yaml``` in ```examples``` folder
       - "55680:55680" # OTLP receiver
       - "13133"       # health_check
 ```
-Once finish the docker config setup, run the following command
+2. Run the following command
 ```
 make docker-composite
 ```
-Stop Application
+3. Stop Application
 ```
 make docker-stop
 ```
+
 ## View result
 * X-Ray - aws console
 * Jaeger - http://localhost:16686/
