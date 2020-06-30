@@ -24,7 +24,7 @@ The provided example will bring up AOC agent instance and send Jaeger traces and
       - "55680:55680" # OTLP receiver
       - "13133"       # health_check
 ```
-2. Run the following command
+2. Run the following command under the package root directory
 ```
 make docker-composite
 ```
