@@ -33,6 +33,7 @@ cp config.yaml ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/etc
 cp tools/packaging/linux/aws-opentelemetry-collector.service ${AOC_ROOT}/etc/systemd/system/
 cp tools/packaging/linux/aws-opentelemetry-collector.conf ${AOC_ROOT}/etc/init/
 chmod ug+rx ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector
+chmod ug+rx ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl
 chmod ug+rx ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/etc/config.yaml
 
 echo "build source tarball"
