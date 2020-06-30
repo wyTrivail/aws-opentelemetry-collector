@@ -1,9 +1,10 @@
+#Overview
 AWS Observability Collector is Certified Amazon distribution of OpenTelemetry Collectors.
 
 ### Run Demos
 The provided example will bring up AOC agent instance and send Jaeger traces and OpenTelemetry Metrics to AOC. You can view Trace and Metric result on AWS X-Ray, Jaeger and CloudWatch Metric consoles. 
 Edit ```docker-composite.yaml``` in ```examples``` folder
-```
+```yaml
   # Agent
   aws-ot-collector:
     image: mxiamxia/awscollector:v0.1.2
