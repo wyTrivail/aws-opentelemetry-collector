@@ -16,7 +16,7 @@
   set -e
   set -u
 
-  readonly AGENTDIR="/opt/aws/aws-observability-collector"
+  readonly AGENTDIR="/opt/aws/aws-opentelemetry-collector"
   readonly CMDDIR="${AGENTDIR}/bin"
   readonly CONFDIR="${AGENTDIR}/etc"
   readonly LOGDIR="${AGENTDIR}/logs"
@@ -70,7 +70,7 @@
     config="${1:-}"
 
     if [ -f "$(config)" ]; then
-      cp "$(config)" "$(CONFDIR)"
+      cp $(config) $(CONFDIR)/config.yaml
     fi
 
     if [ "${SYSTEMD}" = 'true' ]; then
