@@ -28,6 +28,7 @@ cp -rfa * ${RPM_BUILD_ROOT}
 /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector
 /opt/aws/aws-opentelemetry-collector/bin/VERSION
 /opt/aws/aws-opentelemetry-collector/LICENSE
+/opt/aws/aws-opentelemetry-collector/etc/config.yaml
 #/etc/init/amazon-cloudwatch-agent.conf
 #/etc/systemd/system/amazon-cloudwatch-agent.service
 #
