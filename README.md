@@ -26,6 +26,10 @@ Once finish the docker config setup, run the following command
 ```
 make docker-composite
 ```
+Stop Application
+```
+make docker-stop
+```
 ## View result
 * X-Ray - aws console
 * Jaeger - http://localhost:16686/
