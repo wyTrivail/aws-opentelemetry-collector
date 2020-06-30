@@ -1,0 +1,45 @@
+version: "2"
+services:
+
+  # Jaeger
+  jaeger-all-in-one:
+    image: jaegertracing/all-in-one:latest
+    ports:
+      - "16686:16686"
+      - "14268"
+      - "14250:14250"
+
+  # Agent
+  aws-ot-collector:
+    image: mxiamxia/awscollector:v0.1.2
+    command: ["--config=/etc/otel-agent-config.yaml", "--log-level=DEBUG"]
+    environment:
+      - AWS_ACCESS_KEY_ID=<dummy>
+      - AWS_SECRET_ACCESS_KEY=<dummy>
+      - AWS_REGION=us-west-2
+    volumes:
+      - ../config.yaml:/etc/otel-agent-config.yaml
+      - ~/.aws:/root/.aws
+    ports:
+      - "1777:1777"   # pprof extension
+      - "14268"       # Jaeger receiver
+      - "55679:55679" # zpages extension
+      - "55680:55680" # OTLP receiver
+      - "13133"       # health_check
+
+  # Synthetic load generators
+  jaeger-emitter:
+    image: omnition/synthetic-load-generator:1.0.25
+    environment:
+      - JAEGER_COLLECTOR_URL=http://aws-ot-collector:14268
+    depends_on:
+      - aws-ot-collector
+
+  # Metric generator
+  ot-metric-emitter:
+    image: mxiamxia/aoc-metric-generator
+    environment:
+      - OTLP_URL=http://aws-ot-collector:55680
+    depends_on:
+      - aws-ot-collector
+
