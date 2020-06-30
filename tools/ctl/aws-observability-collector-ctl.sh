@@ -1,324 +1,213 @@
-#!/bin/sh
+  #!/bin/sh
 
-# Copyright 2017 Amazon.com, Inc. and its affiliates. All Rights Reserved.
-#
-# Licensed under the Amazon Software License (the "License").
-# You may not use this file except in compliance with the License.
-# A copy of the License is located at
-#
-#   http://aws.amazon.com/asl/
-#
-# or in the "license" file accompanying this file. This file is distributed
-# on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
-# express or implied. See the License for the specific language governing
-# permissions and limitations under the License.
+  # Copyright 2017 Amazon.com, Inc. and its affiliates. All Rights Reserved.
+  #
+  # Licensed under the Amazon Software License (the "License").
+  # You may not use this file except in compliance with the License.
+  # A copy of the License is located at
+  #
+  #   http://aws.amazon.com/asl/
+  #
+  # or in the "license" file accompanying this file. This file is distributed
+  # on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+  # express or implied. See the License for the specific language governing
+  # permissions and limitations under the License.
 
-set -e
-set -u
+  set -e
+  set -u
 
-readonly AGENTDIR="/opt/aws/aws-observability-collector"
-readonly CMDDIR="${AGENTDIR}/bin"
-readonly CONFDIR="${AGENTDIR}/etc"
-readonly LOGDIR="${AGENTDIR}/logs"
-readonly RESTART_FILE="${CONFDIR}/restart"
-readonly VERSION_FILE="${CMDDIR}/CWAGENT_VERSION"
+  readonly AGENTDIR="/opt/aws/aws-observability-collector"
+  readonly CMDDIR="${AGENTDIR}/bin"
+  readonly CONFDIR="${AGENTDIR}/etc"
+  readonly LOGDIR="${AGENTDIR}/logs"
+  readonly RESTART_FILE="${CONFDIR}/restart"
+  readonly VERSION_FILE="${CMDDIR}/VERSION"
 
-# The systemd and upstart scripts assume exactly this .toml file name
-readonly TOML="${CONFDIR}/amazon-cloudwatch-agent.toml"
-readonly JSON="${CONFDIR}/amazon-cloudwatch-agent.json"
-readonly JSON_DIR="${CONFDIR}/amazon-cloudwatch-agent.d"
-readonly CV_LOG_FILE="${AGENTDIR}/logs/configuration-validation.log"
-readonly COMMON_CONIG="${CONFDIR}/common-config.toml"
+  # The systemd and upstart scripts assume exactly this .toml file name
+  readonly TOML="${CONFDIR}/config.yaml"
+  readonly JSON_DIR="${CONFDIR}/aws-observability-collector.d"
 
-SYSTEMD='false'
+  SYSTEMD='false'
 
-UsageString="
+  UsageString="
 
+  usage: amazon-cloudwatch-agent-ctl -a stop|start|status|
 
-        usage: amazon-cloudwatch-agent-ctl -a stop|start|status|
+  fetch-config|append-config|remove-config [-m ec2|onPremise|auto] [-c default|ssm:<parameter-store-name>|file:<file-path>] [-s]
 
-        fetch-config|append-config|remove-config [-m ec2|onPremise|auto] [-c default|ssm:<parameter-store-name>|file:<file-path>] [-s]
+  e.g.
+  1. apply a SSM parameter store config on EC2 instance and restart the agent afterwards:
+  amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:AmazonCloudWatch-Config.json -s
+  2. append a local json config file on onPremise host and restart the agent afterwards:
+  amazon-cloudwatch-agent-ctl -a append-config -m onPremise -c file:/tmp/config.json -s
+  3. query agent status:
+  amazon-cloudwatch-agent-ctl -a status
 
-        e.g.
-        1. apply a SSM parameter store config on EC2 instance and restart the agent afterwards:
-            amazon-cloudwatch-agent-ctl -a fetch-config -m ec2 -c ssm:AmazonCloudWatch-Config.json -s
-        2. append a local json config file on onPremise host and restart the agent afterwards:
-            amazon-cloudwatch-agent-ctl -a append-config -m onPremise -c file:/tmp/config.json -s
-        3. query agent status:
-            amazon-cloudwatch-agent-ctl -a status
+  -a: action
+  stop:                                   stop the agent process.
+  start:                                  start the agent process.
+  status:                                 get the status of the agent process.
+  fetch-config:                           use this json config as the agent's only configuration.
+  append-config:                          append json config with the existing json configs if any.
+  remove-config:                          remove json config based on the location (ssm parameter store name, file name)
 
-        -a: action
-            stop:                                   stop the agent process.
-            start:                                  start the agent process.
-            status:                                 get the status of the agent process.
-            fetch-config:                           use this json config as the agent's only configuration.
-            append-config:                          append json config with the existing json configs if any.
-            remove-config:                          remove json config based on the location (ssm parameter store name, file name)
+  -m: mode
+  ec2:                                    indicate this is on ec2 host.
+  onPremise:                              indicate this is on onPremise host.
+  auto:                                   use ec2 metadata to determine the environment, may not be accurate if ec2 metadata is not available for some reason on EC2.
 
-        -m: mode
-            ec2:                                    indicate this is on ec2 host.
-            onPremise:                              indicate this is on onPremise host.
-            auto:                                   use ec2 metadata to determine the environment, may not be accurate if ec2 metadata is not available for some reason on EC2.
+  -c: configuration
+  default:                                default configuration for quick trial.
+  ssm:<parameter-store-name>:             ssm parameter store name
+  file:<file-path>:                       file path on the host
 
-        -c: configuration
-            default:                                default configuration for quick trial.
-            ssm:<parameter-store-name>:             ssm parameter store name
-            file:<file-path>:                       file path on the host
+  -s: optionally restart after configuring the agent configuration
+  this parameter is used for 'fetch-config', 'append-config', 'remove-config' action only.
 
-        -s: optionally restart after configuring the agent configuration
-            this parameter is used for 'fetch-config', 'append-config', 'remove-config' action only.
+  "
 
-"
+  aoc_start() {
+    config="${1:-}"
 
-cwa_start() {
-    mode="${1:-}"
-
-    if [ "$(cwa_runstatus)" = 'running' ]; then
-        return 0
-    fi
-
-    if [ ! -f "${TOML}" ]; then
-	echo "amazon-cloudwatch-agent is not configured. Applying default configuration before starting it."
-	cwa_config 'default' 'false' "${mode}"
+    if [ -f "$(config)" ]; then
+      cp "$(config)" "$(CONFDIR)"
     fi
 
     if [ "${SYSTEMD}" = 'true' ]; then
-	systemctl daemon-reload
-	systemctl enable amazon-cloudwatch-agent.service
-	service amazon-cloudwatch-agent restart
+      systemctl daemon-reload
+      systemctl enable aws-opentelemetry-collector.service
+      service aws-opentelemetry-collector restart
     else
-	start amazon-cloudwatch-agent
-	sleep 1
+      start aws-opentelemetry-collector
+      sleep 1
     fi
-}
+  }
 
-cwa_stop() {
-    if [ "$(cwa_runstatus)" = 'stopped' ]; then
-        return 0
+  aoc_stop() {
+    if [ "$(aoc_runstatus)" = 'stopped' ]; then
+      return 0
     fi
 
     if [ "${SYSTEMD}" = 'true' ]; then
-	service amazon-cloudwatch-agent stop
+      service aws-opentelemetry-collector stop
     else
-	stop amazon-cloudwatch-agent || true
+      stop aws-opentelemetry-collector || true
     fi
-}
+  }
 
-# support for restart during upgrade via SSM packages
-cwa_prep_restart() {
-    if [ "$(cwa_runstatus)" = 'running' ]; then
-        touch "$RESTART_FILE"
-    fi
-}
-
-# support for restart during upgrade via SSM packages
-cwa_cond_restart() {
-    if [ -f "${RESTART_FILE}" ]; then
-	cwa_start
-	rm -f "${RESTART_FILE}"
-    fi
-}
-
-cwa_preun() {
+  aoc_preun() {
     cwa_stop
     if [ "${SYSTEMD}" = 'true' ]; then
-        systemctl disable amazon-cloudwatch-agent.service
-        systemctl daemon-reload
-        systemctl reset-failed
+      systemctl disable aws-opentelemetry-collector.service
+      systemctl daemon-reload
+      systemctl reset-failed
     fi
-}
+  }
 
-cwa_status() {
-
+  aoc_status() {
     pid=''
     if [ "${SYSTEMD}" = 'true' ]; then
-	pid="$(systemctl show -p MainPID amazon-cloudwatch-agent.service | sed s/MainPID=//)"
+      pid="$(systemctl show -p MainPID aws-opentelemetry-collector.service | sed s/MainPID=//)"
     else
-	pid="$(initctl status amazon-cloudwatch-agent | sed -n s/^.*process\ //p)"
+      pid="$(initctl status aws-opentelemetry-collector | sed -n s/^.*process\ //p)"
     fi
 
     starttime_fmt=''
     if [ ${pid} ] && [ ${pid} -ne 0 ]; then
-        starttime="$(TZ=UTC ps -o lstart= "${pid}")"
-        starttime_fmt="$(TZ=UTC date -Isec -d "${starttime}")"
+      starttime="$(TZ=UTC ps -o lstart= "${pid}")"
+      starttime_fmt="$(TZ=UTC date -Isec -d "${starttime}")"
     fi
 
     version="$(cat ${VERSION_FILE})"
 
     echo "{"
-    echo "  \"status\": \"$(cwa_runstatus)\","
+    echo "  \"status\": \"$(aoc_runstatus)\","
     echo "  \"starttime\": \"${starttime_fmt}\","
     echo "  \"version\": \"${version}\""
     echo "}"
-}
+  }
 
-cwa_runstatus() {
+  aoc_runstatus() {
     running=false
     if [ "${SYSTEMD}" = 'true' ]; then
-	set +e
-	if systemctl is-active amazon-cloudwatch-agent.service 1>/dev/null; then
-	    running='true'
-	fi
-	set -e
+      set +e
+      if systemctl is-active aws-opentelemetry-collector.service 1>/dev/null; then
+        running='true'
+      fi
+      set -e
     else
-	if [ "$(initctl status amazon-cloudwatch-agent | grep -c running)" = 1 ]; then
-	    running='true'
-	fi
+      if [ "$(initctl status aws-opentelemetry-collector | grep -c running)" = 1 ]; then
+        running='true'
+      fi
     fi
 
     if [ "${running}" = 'true' ]; then
-	echo "running"
+      echo "running"
     else
-	echo "stopped"
+      echo "stopped"
     fi
-}
+  }
 
-cwa_config() {
-    config_location="${1:-}"
-    restart="${2:-}"
-    mode="${3:-}"
-    multi_config="${4:-default}"
+    main() {
+      action=''
+      restart='false'
+      mode='ec2'
+      config_location=''
 
-    mkdir -p "${CONFDIR}"
-
-    param_mode="ec2"
-    case "${mode}" in
-	ec2)
-	    param_mode="ec2"
-	    ;;
-	onPremise)
-	    param_mode="onPrem"
-	    ;;
-	auto)
-	    param_mode="auto"
-	    ;;
-	*)  echo "Invalid mode: ${mode}" >&2
-	    exit 1
-	    ;;
-    esac
-
-    runDownloaderCommand="${CMDDIR}/config-downloader --output-dir ${JSON_DIR} --download-source ${config_location} --mode ${param_mode} --config ${COMMON_CONIG} --multi-config ${multi_config}"
-    runTranslatorCommand="${CMDDIR}/config-translator --input ${JSON} --input-dir ${JSON_DIR} --output ${TOML} --mode ${param_mode} --config ${COMMON_CONIG} --multi-config ${multi_config}"
-    runAgentSchemaTestCommand="${CMDDIR}/amazon-cloudwatch-agent -schematest -config ${TOML}"
-
-    echo ${runDownloaderCommand}
-    ${runDownloaderCommand}
-
-    echo "Start configuration validation..."
-    echo ${runTranslatorCommand}
-    ${runTranslatorCommand}
-
-    echo ${runAgentSchemaTestCommand}
-    # We will redirect the verbose error message out
-    if ! ${runAgentSchemaTestCommand} > ${CV_LOG_FILE} 2>&1; then
-        echo "Configuration validation second phase failed"
-        echo "======== Error Log ========"
-        cat ${CV_LOG_FILE}
+      # detect which init system is in use
+      if [ "$(/sbin/init --version 2>/dev/null | grep -c upstart)" = 1 ]; then
+        SYSTEMD='false'
+      elif [ "$(systemctl | grep -c '\-\.mount')" = 1 ]; then
+        SYSTEMD='true'
+      elif [ -f /etc/init.d/cron ] && [ ! -h /etc/init.d/cron ]; then
+        echo "sysv-init is not supported" >&2
         exit 1
-    fi
-    echo "Configuration validation second phase succeeded"
-    echo "Configuration validation succeeded"
+      else
+        echo "unknown init system" >&2
+        exit 1
+      fi
 
-    chmod ug+rw "${TOML}"
+      OPTIND=1
+      while getopts ":hsa:r:c:m:" opt; do
+        case "${opt}" in
+          h) echo "${UsageString}"
+        exit 0
+        ;;
+        s) restart='true' ;;
+        a) action="${OPTARG}" ;;
+        c) config_location="${OPTARG}" ;;
+        m) mode="${OPTARG}" ;;
+        \?) echo "Invalid option: -${OPTARG} ${UsageString}" >&2
+        ;;
+        :)  echo "Option -${OPTARG} requires an argument ${UsageString}" >&2
+        exit 1
+        ;;
+      esac
+      done
+shift "$(( ${OPTIND} - 1 ))"
 
-    # for translator:
-    #       default:    only process .tmp files
-    #       append:     process both existing files and .tmp files
-    #       remove:     only process existing files
-    # At this point, all json configs have been validated
-    # multi_config:
-    #       default:    delete non .tmp file, rename .tmp file
-    #       append:     rename .tmp file
-    #       remove:     no-op
-    if [ "${multi_config}" = 'default' ]; then
-        rm -f "${JSON}"
-        for file in "${JSON_DIR}"/*; do
-            base="${JSON_DIR}/$(basename "${file}" .tmp)"
-            if [ "${file}" = "${base}" ]; then
-                rm -f "${file}"
-            else
-                mv -f "${file}" "${base}"
-            fi
-        done
-    elif [ "${multi_config}" = 'append' ]; then
-        for file in "${JSON_DIR}"/*.tmp; do
-            mv -f "${file}" "${JSON_DIR}/$(basename "${file}" .tmp)"
-        done
-    fi
+case "${mode}" in
+  ec2)
+  ;;
+  onPremise)
+  ;;
+  auto)
+  ;;
+  *)  echo "Invalid mode: ${mode} ${UsageString}" >&2
+  exit 1
+  ;;
+esac
 
-    if [ "${restart}" = 'true' ]; then
-	    cwa_stop
-	    cwa_start
-    fi
-}
-
-main() {
-    action=''
-    config_location='default'
-    restart='false'
-    mode='ec2'
-
-    # detect which init system is in use
-    if [ "$(/sbin/init --version 2>/dev/null | grep -c upstart)" = 1 ]; then
-	SYSTEMD='false'
-    elif [ "$(systemctl | grep -c '\-\.mount')" = 1 ]; then
-	SYSTEMD='true'
-    elif [ -f /etc/init.d/cron ] && [ ! -h /etc/init.d/cron ]; then
-	echo "sysv-init is not supported" >&2
-	exit 1
-    else
-	echo "unknown init system" >&2
-	exit 1
-    fi
-
-    OPTIND=1
-    while getopts ":hsa:r:c:m:" opt; do
-	case "${opt}" in
-	    h) echo "${UsageString}"
-		exit 0
-		;;
-	    s) restart='true' ;;
-	    a) action="${OPTARG}" ;;
-	    c) config_location="${OPTARG}" ;;
-	    m) mode="${OPTARG}" ;;
-	    \?) echo "Invalid option: -${OPTARG} ${UsageString}" >&2
-		;;
-	    :)  echo "Option -${OPTARG} requires an argument ${UsageString}" >&2
-		exit 1
-		;;
-	esac
-    done
-    shift "$(( ${OPTIND} - 1 ))"
-
-    case "${mode}" in
-	ec2)
-	    ;;
-	onPremise)
-	    ;;
-	auto)
-	    ;;
-	*)  echo "Invalid mode: ${mode} ${UsageString}" >&2
-	    exit 1
-	    ;;
-    esac
-
-    case "${action}" in
-	stop) cwa_stop ;;
-	start) cwa_start "${mode}" ;;
-	fetch-config) cwa_config "${config_location}" "${restart}" "${mode}" 'default';;
-	append-config) cwa_config "${config_location}" "${restart}" "${mode}" 'append';;
-	remove-config) cwa_config "${config_location}" "${restart}" "${mode}" 'remove';;
-	status) cwa_status ;;
-        # helpers for ssm package scripts to workaround fact that it can't determine if invocation is due to
-        # upgrade or install
-	prep-restart) cwa_prep_restart ;;
-	cond-restart) cwa_cond_restart ;;
-        # helper for rpm+deb uninstallation hooks, not expected to be called manually
-	preun) cwa_preun ;;
-	*) echo "Invalid action: ${action} ${UsageString}" >&2
-	   exit 1
-	   ;;
-    esac
+case "${action}" in
+  stop) aoc_stop ;;
+  start) aoc_start "${config_location}" ;;
+  status) aoc_status ;;
+  # helper for rpm+deb uninstallation hooks, not expected to be called manually
+  preun) aoc_preun ;;
+  *) echo "Invalid action: ${action} ${UsageString}" >&2
+  exit 1
+  ;;
+esac
 }
 
 main "$@"

@@ -11,19 +11,19 @@
 # express or implied. See the License for the specific language governing
 # permissions and limitations under the License.
 
-# Location: /etc/systemd/system/amazon-cloudwatch-agent.service
-# systemctl enable amazon-cloudwatch-agent
-# systemctl start amazon-cloudwatch-agent
-# systemctl | grep amazon-cloudwatch-agent
+# Location: /etc/systemd/system/aws-opentelemetry-collector.service
+# systemctl enable aws-opentelemetry-collector
+# systemctl start aws-opentelemetry-collector
+# systemctl | grep aws-opentelemetry-collector
 # https://www.freedesktop.org/software/systemd/man/systemd.unit.html
 
 [Unit]
-Description=Amazon CloudWatch Agent
+Description=AWS OpenTelemetry Collector
 After=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/aws/amazon-cloudwatch-agent/bin/start-amazon-cloudwatch-agent
+ExecStart=/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector --config /opt/aws/aws-opentelemetry-collector/etc/config.yaml
 KillMode=process
 Restart=on-failure
 RestartSec=60s

@@ -28,17 +28,12 @@ build:
 
 .PHONY: awscollector
 awscollector:
-	GOOS=linux GOARCH=amd64 GO111MODULE=on CGO_ENABLED=0 $(GOBUILD) $(LDFLAGS) -o ./bin/awscollector_$(GOOS)_$(GOARCH) ./cmd/awscollector
-
+	GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o ./bin/awscollector_$(GOOS)_$(GOARCH) ./cmd/awscollector
 
 .PHONY: package-rpm
 package-rpm: build
 	ARCH=x86_64 DEST=build/packages/linux/amd64 tools/packaging/linux/create_rpm.sh
 	ARCH=aarch64 DEST=build/packages/linux/arm64 tools/packaging/linux/create_rpm.sh
-
-.PHONY: build-docker
-build-docker:
-	docker build -t mxiamxia/aws-aoc:$(VERSION) -f ./cmd/awscollector/Dockerfile ./cmd/awscollector
 
 .PHONY: push-docker
 push-docker:

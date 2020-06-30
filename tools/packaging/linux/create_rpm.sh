@@ -29,6 +29,8 @@ cp LICENSE ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/
 cp VERSION ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/
 cp build/linux/aoc_linux_${ARCH} ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector
 cp config.yaml ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/etc
+cp tools/packaging/linux/aws-opentelemetry-collector.service ${AOC_ROOT}/etc/systemd/system/
+cp tools/packaging/linux/aws-opentelemetry-collector.conf ${AOC_ROOT}/etc/init/
 chmod ug+rx ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector
 chmod ug+rx ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/etc/config.yaml
 
