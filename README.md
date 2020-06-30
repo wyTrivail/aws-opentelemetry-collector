@@ -14,7 +14,7 @@ Edit ```docker-composite.yaml``` in ```examples``` folder
       - AWS_SECRET_ACCESS_KEY=<set your aws credential> // TO EDIT
       - AWS_REGION=us-west-2 // TO EDIT
     volumes:
-      - ../config.yaml:/etc/otel-agent-config.yaml // bring your own config for AOC
+      - ../config.yaml:/etc/otel-agent-config.yaml // use default config
       - ~/.aws:/root/.aws
     ports:
       - "1777:1777"   # pprof extension
