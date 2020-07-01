@@ -69,7 +69,7 @@
   aoc_start() {
     config="${1:-}"
 
-    if [ -f "$(config)" ]; then
+    if [ -f $(config) ]; then
       cp $(config) $(CONFDIR)/config.yaml
     fi
 
