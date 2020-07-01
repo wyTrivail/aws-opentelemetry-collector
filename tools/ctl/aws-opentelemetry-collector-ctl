@@ -69,8 +69,8 @@
   aoc_start() {
     config="${1:-}"
 
-    if [ -f $(config) ]; then
-      cp $(config) $(CONFDIR)/config.yaml
+    if [ -f $config ]; then
+      cp $config $CONFDIR/config.yaml
     fi
 
     if [ "${SYSTEMD}" = 'true' ]; then
