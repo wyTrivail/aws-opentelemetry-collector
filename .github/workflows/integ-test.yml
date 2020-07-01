@@ -132,7 +132,7 @@ jobs:
 
       - name: remove the sha from version
         run: |
-          Version=`cat build/packages/VERSION | awk -F "-" "print $1"
+          Version=`cat build/packages/VERSION | awk -F "-" '{print $1}'`
           echo $Version > build/packages/VERSION
 
       - name: upload packages as an artifact
