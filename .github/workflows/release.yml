@@ -2,8 +2,8 @@ name: Release
 
 # listen on tag with name like v1.0.0
 on:
-  push:
-    tags:
+  create:
+    branch:
       - "v*"
 
 jobs:
