@@ -96,7 +96,7 @@ jobs:
           aws-region: us-west-2
 
       - name: Configure SSH Key
-        run: echo ${{ secrets.INTEG_TEST_SSH_KEY }} > build/packages/sshkey.pem
+        run: echo "${{ secrets.INTEG_TEST_SSH_KEY }}" > build/packages/sshkey.pem
 
       - uses: actions/checkout@v2
 
