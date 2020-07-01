@@ -1,6 +1,7 @@
 package defaultcomponents
 
 import (
+	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsemfexporter"
 	"github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter"
 	"go.opentelemetry.io/collector/component"
 	"go.opentelemetry.io/collector/component/componenterror"
@@ -18,6 +19,7 @@ func Components() (config.Factories, error) {
 
 	exporters := []component.ExporterFactoryBase{
 		&awsxrayexporter.Factory{},
+		&awsemfexporter.Factory{},
 	}
 	for _, exp := range factories.Exporters {
 		exporters = append(exporters, exp)

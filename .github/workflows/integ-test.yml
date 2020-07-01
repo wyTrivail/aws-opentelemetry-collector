@@ -75,6 +75,7 @@ jobs:
   release-to-test-stack:
     runs-on: ubuntu-latest
     needs: [versioning]
+
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -93,7 +94,7 @@ jobs:
         uses: wyTrivail/aocintegtest@master
         with: 
           task: S3Release
-
+          
   ec2test:
     runs-on: ubuntu-latest
     needs: [release-to-test-stack]
@@ -118,3 +119,4 @@ jobs:
         uses: wyTrivail/aocintegtest@master
         with:
           task: EC2Test
+

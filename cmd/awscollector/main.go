@@ -42,8 +42,8 @@ func main() {
 
 	lumberHook := logger.GetLumberHook()
 	info := service.ApplicationStartInfo{
-		ExeName:  "aws-observability-collector",
-		LongName: "AWS Observability Collector",
+		ExeName:  "aws-opentelemetry-collector",
+		LongName: "AWS OpenTelemetry Collector",
 		Version:  version.Version,
 		GitHash:  version.GitHash,
 	}

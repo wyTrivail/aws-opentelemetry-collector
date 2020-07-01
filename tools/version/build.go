@@ -29,7 +29,7 @@ var (
 )
 
 func init() {
-	fmt.Printf("AWS Observability Collector version: %v\n", Version)
+	fmt.Printf("AWS OpenTelemetry Collector version: %v\n", Version)
 }
 
 // Info returns a formatted string, with linebreaks, intended to be displayed

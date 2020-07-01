@@ -5,4 +5,4 @@ FROM scratch
 COPY --from=certs /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY awscollector /
 ENTRYPOINT ["/awscollector"]
-EXPOSE 55678 55679
+EXPOSE 55679 55680

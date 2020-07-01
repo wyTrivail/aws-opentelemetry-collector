@@ -13,6 +13,10 @@ GOBUILD=GO111MODULE=on CGO_ENABLED=0 installsuffix=cgo go build -trimpath
 
 # Use linker flags to provide version/build settings
 LDFLAGS=-ldflags "-s -w -X $(BUILD_INFO_IMPORT_PATH).GitHash=$(GIT_SHA) -X $(BUILD_INFO_IMPORT_PATH).Version=$(VERSION) -X $(BUILD_INFO_IMPORT_PATH).Date=$(DATE)"
+GOOS=$(shell go env GOOS)
+GOARCH=$(shell go env GOARCH)
+DOCKER_NAMESPACE = mxiamxia
+COMPONENT=awscollector
 
 .PHONY: build
 build:
@@ -21,10 +25,55 @@ build:
 	GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o ./build/linux/aoc_linux_x86_64 ./cmd/awscollector
 	GOOS=linux GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o ./build/linux/aoc_linux_aarch64 ./cmd/awscollector
 
+
+.PHONY: awscollector
+awscollector:
+	GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o ./bin/awscollector_$(GOOS)_$(GOARCH) ./cmd/awscollector
+
 .PHONY: package-rpm
 package-rpm: build
 	ARCH=x86_64 DEST=build/packages/linux/amd64 tools/packaging/linux/create_rpm.sh
 	ARCH=aarch64 DEST=build/packages/linux/arm64 tools/packaging/linux/create_rpm.sh
+
+.PHONY: push-docker
+push-docker:
+	docker push mxiamxia/aws-aoc:$(VERSION)
+
+.PHONY: docker-component # Not intended to be used directly
+docker-component: check-component
+	GOOS=linux $(MAKE) $(COMPONENT)
+	cp ./bin/$(COMPONENT)_$(GOOS)_$(GOARCH) ./cmd/$(COMPONENT)/$(COMPONENT)
+	docker build -t $(DOCKER_NAMESPACE)/$(COMPONENT):$(VERSION) ./cmd/$(COMPONENT)/
+	rm ./cmd/$(COMPONENT)/$(COMPONENT)
+
+.PHONY: check-component
+check-component:
+ifndef COMPONENT
+	$(error COMPONENT variable was not defined)
+endif
+
+.PHONY: docker-build
+docker-build: awscollector
+	$(MAKE) docker-component
+
+.PHONY: docker-push
+docker-push:
+	docker push $(DOCKER_NAMESPACE)/$(COMPONENT):$(VERSION)
+
+.PHONY: docker-run
+docker-run:
+	docker run --rm -p 55680:55680 -p 55679:55679 \
+            -v "${PWD}/config.yaml":/otel-local-config.yaml \
+            --name awscollector $(DOCKER_NAMESPACE)/$(COMPONENT):$(VERSION) \
+            --config otel-local-config.yaml; \
+
+.PHONY: docker-composite
+docker-composite:
+	cd examples; docker-compose up -d
+
+.PHONY: docker-stop
+docker-stop:
+	docker stop $(shell docker ps -aq)
 
 .PHONY: clean
 clean: 
