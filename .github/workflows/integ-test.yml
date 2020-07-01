@@ -126,6 +126,7 @@ jobs:
 
   release-candidate:
     runs-on: ubuntu-latest
+    if: github.event_name == "push" # only create the artifact when there's a push, not for dispatch.
     needs: [ec2test]
     steps:
       - name: restore cached packages
@@ -134,7 +135,7 @@ jobs:
           path: build/packages
           key: "cached_packages_$GITHUB_RUN_ID"
 
-      - name: remove the sha from version
+      - name: remove the run id from version
         run: |
           Version=`cat build/packages/VERSION | awk -F "-" '{print $1}'`
           echo $Version > build/packages/VERSION
