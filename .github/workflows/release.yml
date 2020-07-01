@@ -22,7 +22,7 @@ jobs:
           name: packages_artifact
           path: build/packages
 
-      - name: Configure AWS Credentials, TODO: need to change to the release account credentials
+      - name: Configure AWS Credentials, TODO: change to the release account credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
           aws-access-key-id: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
