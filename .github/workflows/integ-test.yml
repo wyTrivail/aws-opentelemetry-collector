@@ -55,13 +55,13 @@ jobs:
     runs-on: ubuntu-latest
     needs: [package-rpm]
     steps: 
+      - uses: actions/checkout@v2
+
       - name: Restore cached rpms
         uses: actions/cache@v2
         with:
           key: "cached_rpms_${{ github.sha }}"
           path: build/packages
-
-      - uses: actions/checkout@v2
 
       - name: Versioning for testing
         run: |
