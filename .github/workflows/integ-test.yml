@@ -1,9 +1,6 @@
-# This is a basic workflow to help you get started with Actions
-
 name: Integ-test
 
-# Controls when the action will run. Triggers the workflow on push or pull request
-# events but only for the master branch
+# listen on any branch
 on: [push]
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
@@ -51,9 +48,34 @@ jobs:
           key: "cached_rpms_${{ github.sha }}"
           path: build/packages
 
-  release-to-test-stack:
+  versioning:
     runs-on: ubuntu-latest
     needs: [package-rpm]
+    steps: 
+      - uses: actions/checkout@v2
+
+      - name: Restore cached rpms
+        uses: actions/cache@v2
+        with:
+          key: "cached_rpms_${{ github.sha }}"
+          path: build/packages
+
+      - name: Versioning for testing
+        run: |
+          # build a version with github commit sha so that we can distingush each build for integ-test
+          Version="`cat VERSION`-$GITHUB_SHA"
+          echo $Version > build/packages/VERSION
+
+      - name: Cache the packages
+        uses: actions/cache@v2
+        with:
+          key: "cached_packages_${{ github.sha }}"
+          path: build/packages
+
+  release-to-test-stack:
+    runs-on: ubuntu-latest
+    needs: [versioning]
+
     steps:
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
@@ -62,24 +84,39 @@ jobs:
           aws-secret-access-key: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
           aws-region: us-west-2
 
-      - uses: actions/checkout@v2
-
       - name: restore cached rpms
         uses: actions/cache@v2
         with:
           path: build/packages
-          key: "cached_rpms_${{ github.sha }}"
-
-      - name: versioning
-        run: |
-          # build a version with github commit sha so that we can distingush each build for integ-test
-          Version="`cat VERSION`-$GITHUB_SHA"
-          echo $Version > build/packages/VERSION
-
-      - name: Display file structure
-        run: ls -R
+          key: "cached_packages_${{ github.sha }}"
 
       - name: upload-to-s3
         uses: wyTrivail/aocintegtest@master
         with: 
           task: S3Release
+          
+  ec2test:
+    runs-on: ubuntu-latest
+    needs: [release-to-test-stack]
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
+          aws-region: us-west-2
+
+      - name: restore cached rpms
+        uses: actions/cache@v2
+        with:
+          path: build/packages
+          key: "cached_packages_${{ github.sha }}"
+
+      - name: Configure SSH Key
+        run: echo "${{ secrets.INTEG_TEST_SSH_KEY }}" > build/packages/sshkey.pem
+
+      - name: perform integration test on EC2
+        uses: wyTrivail/aocintegtest@master
+        with:
+          task: EC2Test
+

@@ -27,6 +27,7 @@ mkdir -p ${AOC_ROOT}/etc/systemd/system/
 echo "Copying application files"
 cp LICENSE ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/
 cp VERSION ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/
+
 cp build/linux/aoc_linux_${ARCH} ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector
 cp tools/ctl/aws-opentelemetry-collector-ctl ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/
 cp config.yaml ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/etc
