@@ -27,7 +27,7 @@ jobs:
     - name: Cache binaries
       uses: actions/cache@v2
       with:
-        key: "cached_binaries_$GITHUB_RUN_ID"
+        key: "cached_binaries_${{ github.run_id }}"
         path: build
 
   package-rpm:
@@ -38,7 +38,7 @@ jobs:
       - name: restore cached binaries
         uses: actions/cache@v2
         with:
-          key: "cached_binaries_$GITHUB_RUN_ID"
+          key: "cached_binaries_${{ github.run_id }}"
           path: build
           
       - name: Build RPM
@@ -49,7 +49,7 @@ jobs:
       - name: Cache rpms
         uses: actions/cache@v2
         with:
-          key: "cached_rpms_$GITHUB_RUN_ID"
+          key: "cached_rpms_${{ github.run_id }}"
           path: build/packages
 
   versioning:
@@ -61,7 +61,7 @@ jobs:
       - name: Restore cached rpms
         uses: actions/cache@v2
         with:
-          key: "cached_rpms_$GITHUB_RUN_ID"
+          key: "cached_rpms_${{ github.run_id }}"
           path: build/packages
 
       - name: Versioning for testing
@@ -73,7 +73,7 @@ jobs:
       - name: Cache the packages
         uses: actions/cache@v2
         with:
-          key: "cached_packages_$GITHUB_RUN_ID"
+          key: "cached_packages_${{ github.run_id }}"
           path: build/packages
 
   release-to-test-stack:
@@ -92,7 +92,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build/packages
-          key: "cached_packages_$GITHUB_RUN_ID"
+          key: "cached_packages_${{ github.run_id }}"
 
       - name: upload-to-s3
         uses: wyTrivail/aocintegtest@master
@@ -114,7 +114,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build/packages
-          key: "cached_packages_$GITHUB_RUN_ID"
+          key: "cached_packages_${{ github.run_id }}"
 
       - name: Configure SSH Key
         run: echo "${{ secrets.INTEG_TEST_SSH_KEY }}" > build/packages/sshkey.pem
@@ -133,7 +133,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build/packages
-          key: "cached_packages_$GITHUB_RUN_ID"
+          key: "cached_packages_${{ github.run_id }}"
 
       - name: remove the run id from version
         run: |
