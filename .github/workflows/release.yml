@@ -26,7 +26,7 @@ jobs:
         run: if [[ "refs/tags/`cat build/packages/VERSION`" != "${{ github.ref }}" ]]; then exit 1; fi
 
       - name: Check the commit sha
-        run: if [[ "`cat build/packages/GITHUB_SHA`" != "{{ github.sha }}" ]]; then exit 1; fi
+        run: if [[ "`cat build/packages/GITHUB_SHA`" != "${{ github.sha }}" ]]; then exit 1; fi
 
       - name: Configure AWS Credentials, TODO change to the release account credentials
         uses: aws-actions/configure-aws-credentials@v1
