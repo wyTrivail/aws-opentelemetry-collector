@@ -3,8 +3,8 @@ name: Release
 # listen on tag with name like v1.0.0
 on:
   create:
-    branch:
-      - "v*"
+    tag:
+      - "/^v([0-9])+.([0-9])+.([0-9])+.*/"
 
 jobs:
   release:
@@ -21,6 +21,12 @@ jobs:
           commit: ${{ github.sha }}
           name: packages_artifact
           path: build/packages
+
+      - name: Check the version number
+        run: if [[ "refs/tags/`cat build/packages/VERSION`" != "${{ github.ref }}" ]]; then exit 1; fi
+
+      - name: Check the commit sha
+        run: if [[ "`cat build/packages/GITHUB_SHA`" != "{{ github.sha }}" ]]; then exit 1; fi
 
       - name: Configure AWS Credentials, TODO change to the release account credentials
         uses: aws-actions/configure-aws-credentials@v1

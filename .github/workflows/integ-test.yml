@@ -139,6 +139,7 @@ jobs:
         run: |
           Version=`cat build/packages/VERSION | awk -F "-" '{print $1}'`
           echo $Version > build/packages/VERSION
+          echo $GITHUB_SHA > build/packages/GITHUB_SHA
 
       - name: upload packages as an artifact
         uses: actions/upload-artifact@v2
