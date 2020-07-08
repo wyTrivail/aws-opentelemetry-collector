@@ -82,7 +82,7 @@ jobs:
         uses: actions/cache@v2
         with:
           key: "cached_image_${{ github.run_id }}"
-          path: $PACKAGING_ROOT
+          path: "${{ env.PACKAGING_ROOT }}"
 
   versioning:
     runs-on: ubuntu-latest
