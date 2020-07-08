@@ -6,11 +6,11 @@ on:
     branches: 
       - master
       - workflow-1
+env:
+  IMAGE_NAME: wytrivail/awscollector
+  PACKAGING_ROOT: build/packages
 
 jobs:
-  env:
-    IMAGE_NAME: wytrivail/awscollector
-    PACKAGING_ROOT: build/packages
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
