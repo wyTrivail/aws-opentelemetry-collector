@@ -8,6 +8,9 @@ on:
       - workflow-1
 
 jobs:
+  env:
+    IMAGE_NAME: wytrivail/awscollector
+    PACKAGING_ROOT: build/packages
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -61,10 +64,27 @@ jobs:
           key: "cached_binaries_${{ github.run_id }}"
           path: build
 
+      - name: prepare docker building workspace
+        run: |
+          mkdir -p build/image-build/awscollector
+          cp cmd/awscollector/Dockerfile build/image-build/
+          cp build/linux/aoc_linux_x86_64 build/image-build/awscollector/
+        
+      - name: Build Image
+        run: docker -t wytrivail/awscollector:`cat VERSION` build/image-build
+
+      - name: Extract the Image file
+        run: docker save --output $PACKAGING_ROOT/awscollector.tar $IMAGE_NAME
+
+      - name: Cache Image
+        uses: actions/cache@v2
+        with:
+          key: "cached_image_${{ github.run_id }}"
+          path: $PACKAGING_ROOT
 
   versioning:
     runs-on: ubuntu-latest
-    needs: [package-rpm]
+    needs: [package-rpm, build-image]
     steps: 
       - uses: actions/checkout@v2
 
@@ -73,6 +93,14 @@ jobs:
         with:
           key: "cached_rpms_${{ github.run_id }}"
           path: build/packages
+
+      - name: Restore cached image
+        uses: actions/cached@v2
+        with:
+          key: "cached_image_${{ github.run_id }}"
+          path: build/packages
+
+      - run: ls -R
 
       - name: Versioning for testing
         run: |
