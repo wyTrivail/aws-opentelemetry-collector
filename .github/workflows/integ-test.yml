@@ -134,10 +134,17 @@ jobs:
           path: build/packages
           key: "cached_packages_${{ github.run_id }}"
 
-      - name: upload-to-s3
+      - name: upload to s3
         uses: wyTrivail/aocintegtest@master
         with: 
           task: S3Release
+
+      - name: upload to dockerhub
+        run: |
+          docker login --username $TEST_DOCKERHUB_USERNAME --password $TEST_DOCKERHUB_PASSWORD
+          docker load < build/packages/awscollector.tar
+          docker tag awscollector "awscollector:`cat VERSION`"
+          docker push "awscollector:`cat VERSION`"
           
   ec2test:
     runs-on: ubuntu-latest
