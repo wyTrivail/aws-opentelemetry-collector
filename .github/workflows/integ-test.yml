@@ -148,7 +148,7 @@ jobs:
 
       - name: upload to dockerhub
         run: |
-          $TAG=`cat build/packages/VERSION`
+          TAG=`cat build/packages/VERSION`
           docker load < build/packages/awscollector.tar
           docker tag $IMAGE_NAME $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
