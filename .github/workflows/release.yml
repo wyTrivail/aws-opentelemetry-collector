@@ -6,8 +6,11 @@ on:
     tag:
       - "/^v([0-9])+.([0-9])+.([0-9])+.*/"
 
+env:
+  PACKAGE_CACHE_KEY: "cached_tested_packages_${{ github.run_id }}"
+
 jobs:
-  release:
+  release-checking:
     runs-on: ubuntu-latest
     steps: 
       - name: Checking if the related commit has passed the Soaking test
@@ -28,6 +31,22 @@ jobs:
       - name: Check the commit sha
         run: if [[ "`cat build/packages/GITHUB_SHA`" != "${{ github.sha }}" ]]; then exit 1; fi
 
+      - name: Cache packages
+        uses: actions/cache@v2
+        with:
+          key: "${{ env.PACKAGE_CACHE_KEY }}"
+          path: build/packages
+
+  release-to-s3:
+    runs-on: ubuntu-latest
+    needs: soaking-test-checking
+    steps:
+      - name: Restore cached packages
+        uses: actions/cache@v2
+        with:
+          key: "${{ env.PACKAGE_CACHE_KEY }}"
+          path: build/packages
+
       - name: Configure AWS Credentials, TODO change to the release account credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -40,3 +59,26 @@ jobs:
         with:
           task: S3Release
           stack: RELEASE
+
+  release-to-dockerhub:
+    runs-on: ubuntu-latest
+    needs: soaking-test-checking
+    steps:
+      - name: Restore cached packages
+        uses: actions/cache@v2
+        with:
+          key: "${{ env.PACKAGE_CACHE_KEY }}"
+          path: build/packages
+
+      - name: Login Dockerhub
+        uses: azure/docker-login@v1
+        with:
+          username: "${{ secrets.TEST_DOCKERHUB_USERNAME }}"
+          password: "${{ secrets.TEST_DOCKERHUB_PASSWORD }}"
+
+      - name: upload to dockerhub
+        run: |
+          docker load < build/packages/awscollector.tar
+          docker tag awscollector "awscollector:`cat build/package/VERSION`"
+          docker push "awscollector:`cat build/packages/VERSION`"
+

@@ -7,7 +7,8 @@ on:
       - master
       - workflow-1
 env:
-  IMAGE_NAME: wytrivail/awscollector
+  IMAGE_NAMESPACE: josephwy
+  IMAGE_NAME: awscollector
   PACKAGING_ROOT: build/packages
 
 jobs:
@@ -148,8 +149,8 @@ jobs:
       - name: upload to dockerhub
         run: |
           docker load < build/packages/awscollector.tar
-          docker tag awscollector "awscollector:`cat build/package/VERSION`"
-          docker push "awscollector:`cat build/packages/VERSION`"
+          docker tag $IMAGE_NAME "$IMAGE_NAMESPACE/$IMAGE_NAME:`cat build/package/VERSION`"
+          docker push "$IMAGE_NAMESPACE/$IMAGE_NAME:`cat build/packages/VERSION`"
           
   ec2test:
     runs-on: ubuntu-latest
