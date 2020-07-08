@@ -74,7 +74,9 @@ jobs:
         run: docker build -t "wytrivail/awscollector:`cat VERSION`" build/image-build
 
       - name: Extract the Image file
-        run: docker save --output $PACKAGING_ROOT/awscollector.tar $IMAGE_NAME
+        run: |
+          mkdir -p $PACKAGING_ROOT
+          docker save --output $PACKAGING_ROOT/awscollector.tar $IMAGE_NAME
 
       - name: Cache Image
         uses: actions/cache@v2
