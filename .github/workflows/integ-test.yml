@@ -71,7 +71,7 @@ jobs:
           cp build/linux/aoc_linux_x86_64 build/image-build/awscollector/
         
       - name: Build Image
-        run: docker build -t "wytrivail/awscollector:`cat VERSION`" build/image-build
+        run: docker build -t "awscollector" build/image-build
 
       - name: Extract the Image file
         run: |
@@ -148,8 +148,8 @@ jobs:
       - name: upload to dockerhub
         run: |
           docker load < build/packages/awscollector.tar
-          docker tag awscollector "awscollector:`cat VERSION`"
-          docker push "awscollector:`cat VERSION`"
+          docker tag awscollector "awscollector:`cat build/package/VERSION`"
+          docker push "awscollector:`cat build/packages/VERSION`"
           
   ec2test:
     runs-on: ubuntu-latest
