@@ -23,7 +23,8 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector --config /opt/aws/aws-opentelemetry-collector/etc/config.yaml
+EnvironmentFile=/opt/aws/aws-opentelemetry-collector/etc/.env
+ExecStart=/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector $config
 KillMode=process
 Restart=on-failure
 RestartSec=60s
