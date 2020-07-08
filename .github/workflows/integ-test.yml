@@ -142,8 +142,8 @@ jobs:
       - name: Login Dockerhub
         uses: azure/docker-login@v1
         with:
-          username: "${{ secret.TEST_DOCKERHUB_USERNAME }}"
-          password: "${{ secret.TEST_DOCKERHUB_PASSWORD }}"
+          username: "${{ secrets.TEST_DOCKERHUB_USERNAME }}"
+          password: "${{ secrets.TEST_DOCKERHUB_PASSWORD }}"
 
       - name: upload to dockerhub
         run: |
