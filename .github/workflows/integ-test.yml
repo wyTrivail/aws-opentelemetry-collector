@@ -71,7 +71,7 @@ jobs:
           cp build/linux/aoc_linux_x86_64 build/image-build/awscollector/
         
       - name: Build Image
-        run: docker -t "wytrivail/awscollector:`cat VERSION`" build/image-build
+        run: docker build -t "wytrivail/awscollector:`cat VERSION`" build/image-build
 
       - name: Extract the Image file
         run: docker save --output $PACKAGING_ROOT/awscollector.tar $IMAGE_NAME
