@@ -97,7 +97,7 @@ jobs:
           path: build/packages
 
       - name: Restore cached image
-        uses: actions/cached@v2
+        uses: actions/cache@v2
         with:
           key: "cached_image_${{ github.run_id }}"
           path: build/packages
