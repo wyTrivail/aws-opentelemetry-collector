@@ -16,7 +16,7 @@ This package provides daemon of AWS Opentelemetry Collector
 rm -rf ${RPM_BUILD_ROOT}
 mkdir -p ${RPM_BUILD_ROOT}
 cp -rfa * ${RPM_BUILD_ROOT}
-ln -f -s /opt/aws/aws-opentelemetry-collector/bin/amazon-cloudwatch-agent-ctl ${RPM_BUILD_ROOT}/usr/bin/aws-opentelemetry-collector-ctl
+ln -f -s /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl ${RPM_BUILD_ROOT}/usr/bin/aws-opentelemetry-collector-ctl
 
 %files
 %dir /opt/aws
