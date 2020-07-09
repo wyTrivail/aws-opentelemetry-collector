@@ -14,4 +14,26 @@
 
 package version
 
-// TODO: Add tests
+import (
+	"github.com/stretchr/testify/assert"
+	"runtime"
+	"strings"
+	"testing"
+)
+
+// InfoVar is a singleton instance of the Info struct.
+var InfoVar = Info([][2]string{
+	{"Version", Version},
+	{"GitHash", GitHash},
+	{"Goversion", runtime.Version()},
+	{"OS", runtime.GOOS},
+	{"Architecture", runtime.GOARCH},
+})
+
+func TestInfoString(t *testing.T) {
+	infoString := InfoVar.String()
+	for _, el := range InfoVar {
+		assert.True(t, strings.Contains(infoString, el[0]))
+		assert.True(t, strings.Contains(infoString, el[1]))
+	}
+}

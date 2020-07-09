@@ -20,13 +20,17 @@ var lumberjackLogger = &lumberjack.Logger{
 	Compress:   true,
 }
 
+// GetLumberHook returns lumberjackLogger as a Zap hook
+// for processing log size and log rotation
 func GetLumberHook() func(e zapcore.Entry) error {
 	return func(e zapcore.Entry) error {
-		lumberjackLogger.Write([]byte(fmt.Sprintf("%+v\r\n", e)))
+		lumberjackLogger.Write([]byte(fmt.Sprintf("{%+v, Level:%+v, Caller:%+v, Message:%+v, Stack:%+v}\r\n",
+			e.Time, e.Level, e.Caller, e.Message, e.Stack)))
 		return nil
 	}
 }
 
+// SetupErrorLogger setup lumberjackLogger for go logger
 func SetupErrorLogger() {
 	log.SetFlags(0)
 	var writer io.WriteCloser

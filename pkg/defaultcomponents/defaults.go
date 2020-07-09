@@ -9,7 +9,7 @@ import (
 	"go.opentelemetry.io/collector/service/defaultcomponents"
 )
 
-// Components whitelist Otel components for AOC distribution
+// Components register Otel components for AOC distribution
 func Components() (config.Factories, error) {
 	errs := []error{}
 	factories, err := defaultcomponents.Components()

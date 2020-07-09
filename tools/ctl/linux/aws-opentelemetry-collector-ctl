@@ -22,6 +22,7 @@
   readonly LOGDIR="${AGENTDIR}/logs"
   readonly RESTART_FILE="${CONFDIR}/restart"
   readonly VERSION_FILE="${CMDDIR}/VERSION"
+  username="aoc"
 
   # The systemd and upstart scripts assume exactly this .toml file name
   readonly TOML="${CONFDIR}/config.yaml"
@@ -71,6 +72,14 @@
 
     if [ ! -z $config ] && [ -f $config ]; then
           cp $config $CONFDIR/config.yaml
+    fi
+
+    if [ `sed -n "/^$username/p" /etc/passwd` ]
+    then
+        echo "User [$username] already exists"
+    else
+        sudo sudo useradd $username
+        echo "User [$username] created"
     fi
 
     if [ "${SYSTEMD}" = 'true' ]; then
