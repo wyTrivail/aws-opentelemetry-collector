@@ -16,6 +16,7 @@ This package provides daemon of AWS Opentelemetry Collector
 rm -rf ${RPM_BUILD_ROOT}
 mkdir -p ${RPM_BUILD_ROOT}
 cp -rfa * ${RPM_BUILD_ROOT}
+ln -f -s /opt/aws/aws-opentelemetry-collector/bin/amazon-cloudwatch-agent-ctl ${RPM_BUILD_ROOT}/usr/bin/aws-opentelemetry-collector-ctl
 
 %files
 %dir /opt/aws
@@ -38,6 +39,24 @@ cp -rfa * ${RPM_BUILD_ROOT}
 #/etc/amazon/aws-opentelemetry-collector
 #/var/log/amazon/aws-opentelemetry-collector
 #/var/run/amazon/aws-opentelemetry-collector
+
+%pre
+# Stop the agent before upgrades.
+if [ $1 -ge 2 ]; then
+    if [ -x /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl ]; then
+        /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl -a stop
+    fi
+fi
+
+if ! grep "^aoc:" /etc/group >/dev/null 2>&1; then
+    groupadd -r aoc >/dev/null 2>&1
+    echo "create group aoc, result: $?"
+fi
+
+if ! id aoc >/dev/null 2>&1; then
+    useradd -r -M aoc -d /home/aoc -g aoc >/dev/null 2>&1
+    echo "create user aoc, result: $?"
+fi
 
 %clean
 rm -rf ${RPM_BUILD_ROOT}
