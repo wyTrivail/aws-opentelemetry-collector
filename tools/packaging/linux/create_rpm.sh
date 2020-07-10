@@ -22,7 +22,8 @@ mkdir -p ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/etc
 mkdir -p ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/var
 mkdir -p ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/doc
 mkdir -p ${AOC_ROOT}/etc/init
-mkdir -p ${AOC_ROOT}/etc/systemd/system/
+mkdir -p ${AOC_ROOT}/etc/systemd/system
+mkdir -p ${AOC_ROOT}/usr/bin
 
 echo "Copying application files"
 cp LICENSE ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/
@@ -38,6 +39,7 @@ chmod ug+rx ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetr
 chmod ug+rx ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl
 chmod ug+rx ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/etc/config.yaml
 chmod ug+rx ${AOC_ROOT}/opt/aws/aws-opentelemetry-collector/etc/.env
+ln -f -s /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl ${AOC_ROOT}/usr/bin/aws-opentelemetry-collector-ctl
 
 echo "build source tarball"
 tar -czvf ${RPM_NAME}-${VERSION}.tar.gz -C ${WORK_DIR} .
