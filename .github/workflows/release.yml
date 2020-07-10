@@ -1,0 +1,123 @@
+name: Release
+
+# listen on tag with name like v1.0.0
+on:
+  create:
+    tag:
+      - "/^v([0-9])+.([0-9])+.([0-9])+.*/"
+
+env:
+  IMAGE_NAMESPACE: josephwy
+  IMAGE_NAME: awscollector
+  PACKAGE_CACHE_KEY: "cached_tested_packages_${{ github.run_id }}"
+  S3_LINK_TABLE_CACHE_KEY: "cached_s3_link_table_${{ github.run_id }}"
+
+jobs:
+  release-checking:
+    runs-on: ubuntu-latest
+    steps: 
+      - name: Checking if the related commit has passed the Soaking test
+        run: echo "Checking Soaking test"
+
+      - name: Download the release artifact base on the commit hash
+        uses: dawidd6/action-download-artifact@v2
+        with:
+          github_token: ${{secrets.GITHUB_TOKEN}}
+          workflow: integ-test.yml
+          commit: ${{ github.sha }}
+          name: packages_artifact
+          path: build/packages
+
+      - name: Check the version number
+        run: if [[ "refs/tags/`cat build/packages/VERSION`" != "${{ github.ref }}" ]]; then exit 1; fi
+
+      - name: Check the commit sha
+        run: if [[ "`cat build/packages/GITHUB_SHA`" != "${{ github.sha }}" ]]; then exit 1; fi
+
+      - name: Cache packages
+        uses: actions/cache@v2
+        with:
+          key: "${{ env.PACKAGE_CACHE_KEY }}"
+          path: build/packages
+
+  release-to-s3:
+    runs-on: ubuntu-latest
+    needs: release-checking
+    outputs:
+      s3_links: "${{ steps.release-to-s3.outputs.task_response }}"
+    steps:
+      - name: Restore cached packages
+        uses: actions/cache@v2
+        with:
+          key: "${{ env.PACKAGE_CACHE_KEY }}"
+          path: build/packages
+
+      - name: Configure AWS Credentials, TODO change to the release account credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
+          aws-region: us-west-2
+
+      - name: Release to S3
+        id: release-to-s3
+        uses: wyTrivail/aocintegtest@master
+        with:
+          task: S3Release
+          stack: RELEASE
+
+      - run: ls -R
+
+      - name: Cache the S3 link table
+        uses: actions/cache@v2
+        with:
+          key: "${{ env.S3_LINK_TABLE_CACHE_KEY }}"
+          path: task_response
+
+  release-to-dockerhub:
+    runs-on: ubuntu-latest
+    needs: release-checking
+    steps:
+      - name: Restore cached packages
+        uses: actions/cache@v2
+        with:
+          key: "${{ env.PACKAGE_CACHE_KEY }}"
+          path: build/packages
+
+      - name: Login Dockerhub
+        uses: azure/docker-login@v1
+        with:
+          username: "${{ secrets.TEST_DOCKERHUB_USERNAME }}"
+          password: "${{ secrets.TEST_DOCKERHUB_PASSWORD }}"
+
+      - name: upload to dockerhub
+        run: |
+          TAG=`cat build/packages/VERSION`
+          docker load < build/packages/awscollector.tar
+          docker tag $IMAGE_NAME $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
+          docker tag $IMAGE_NAME $IMAGE_NAMESPACE/$IMAGE_NAME:latest
+          docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
+          docker push $IMAGE_NAMESPACE/$IMAGE_NAME:latest
+
+  release-to-github:
+    runs-on: ubuntu-latest
+    needs: [release-to-s3, release-to-dockerhub]
+    steps:
+      - name: Restore the S3 link table from cache
+        uses: actions/cache@v2
+        with:
+          key: "${{ env.S3_LINK_TABLE_CACHE_KEY }}"
+          path: task_response
+
+      - run: ls -R
+
+      - name: Release to github
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref}}
+          release_name: Release ${{ github.ref }}
+          body_path: task_response
+          draft: false
+          prerelease: false

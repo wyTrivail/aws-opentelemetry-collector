@@ -1,11 +1,17 @@
 name: Integ-test
 
 # listen on any branch
-on: [push]
+on:
+  push:
+    branches: 
+      - master
+      - workflow-1
+env:
+  IMAGE_NAMESPACE: josephwy
+  IMAGE_NAME: awscollector
+  PACKAGING_ROOT: build/packages
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
@@ -23,7 +29,7 @@ jobs:
     - name: Cache binaries
       uses: actions/cache@v2
       with:
-        key: "cached_binaries_${{ github.sha }}"
+        key: "cached_binaries_${{ github.run_id }}"
         path: build
 
   package-rpm:
@@ -34,7 +40,7 @@ jobs:
       - name: restore cached binaries
         uses: actions/cache@v2
         with:
-          key: "cached_binaries_${{ github.sha}}"
+          key: "cached_binaries_${{ github.run_id }}"
           path: build
           
       - name: Build RPM
@@ -45,31 +51,70 @@ jobs:
       - name: Cache rpms
         uses: actions/cache@v2
         with:
-          key: "cached_rpms_${{ github.sha }}"
+          key: "cached_rpms_${{ github.run_id }}"
           path: build/packages
+
+  build-image:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - uses: actions/checkout@v2
+      - name: restore cached binaries
+        uses: actions/cache@v2
+        with:
+          key: "cached_binaries_${{ github.run_id }}"
+          path: build
+
+      - name: prepare docker building workspace
+        run: |
+          mkdir -p build/image-build/awscollector
+          cp cmd/awscollector/Dockerfile build/image-build/
+          cp build/linux/aoc_linux_x86_64 build/image-build/awscollector/
+        
+      - name: Build Image
+        run: docker build -t "awscollector" build/image-build
+
+      - name: Extract the Image file
+        run: |
+          mkdir -p $PACKAGING_ROOT
+          docker save --output $PACKAGING_ROOT/awscollector.tar $IMAGE_NAME
+
+      - name: Cache Image
+        uses: actions/cache@v2
+        with:
+          key: "cached_image_${{ github.run_id }}"
+          path: "${{ env.PACKAGING_ROOT }}"
 
   versioning:
     runs-on: ubuntu-latest
-    needs: [package-rpm]
+    needs: [package-rpm, build-image]
     steps: 
       - uses: actions/checkout@v2
 
       - name: Restore cached rpms
         uses: actions/cache@v2
         with:
-          key: "cached_rpms_${{ github.sha }}"
+          key: "cached_rpms_${{ github.run_id }}"
           path: build/packages
+
+      - name: Restore cached image
+        uses: actions/cache@v2
+        with:
+          key: "cached_image_${{ github.run_id }}"
+          path: build/packages
+
+      - run: ls -R
 
       - name: Versioning for testing
         run: |
-          # build a version with github commit sha so that we can distingush each build for integ-test
-          Version="`cat VERSION`-$GITHUB_SHA"
+          # build a version with github run id so that we can distingush each build for integ-test
+          Version="`cat VERSION`-$GITHUB_RUN_ID"
           echo $Version > build/packages/VERSION
 
       - name: Cache the packages
         uses: actions/cache@v2
         with:
-          key: "cached_packages_${{ github.sha }}"
+          key: "cached_packages_${{ github.run_id }}"
           path: build/packages
 
   release-to-test-stack:
@@ -88,12 +133,25 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build/packages
-          key: "cached_packages_${{ github.sha }}"
+          key: "cached_packages_${{ github.run_id }}"
 
-      - name: upload-to-s3
+      - name: upload to s3
         uses: wyTrivail/aocintegtest@master
         with: 
           task: S3Release
+
+      - name: Login Dockerhub
+        uses: azure/docker-login@v1
+        with:
+          username: "${{ secrets.TEST_DOCKERHUB_USERNAME }}"
+          password: "${{ secrets.TEST_DOCKERHUB_PASSWORD }}"
+
+      - name: upload to dockerhub
+        run: |
+          TAG=`cat build/packages/VERSION`
+          docker load < build/packages/awscollector.tar
+          docker tag $IMAGE_NAME $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
+          docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
           
   ec2test:
     runs-on: ubuntu-latest
@@ -110,7 +168,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: build/packages
-          key: "cached_packages_${{ github.sha }}"
+          key: "cached_packages_${{ github.run_id }}"
 
       - name: Configure SSH Key
         run: echo "${{ secrets.INTEG_TEST_SSH_KEY }}" > build/packages/sshkey.pem
@@ -120,3 +178,25 @@ jobs:
         with:
           task: EC2Test
 
+  release-candidate:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' # only create the artifact when there's a push, not for dispatch.
+    needs: [ec2test]
+    steps:
+      - name: restore cached packages
+        uses: actions/cache@v2
+        with:
+          path: build/packages
+          key: "cached_packages_${{ github.run_id }}"
+
+      - name: remove the run id from version
+        run: |
+          Version=`cat build/packages/VERSION | awk -F "-" '{print $1}'`
+          echo $Version > build/packages/VERSION
+          echo $GITHUB_SHA > build/packages/GITHUB_SHA
+
+      - name: upload packages as an artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: packages_artifact
+          path: build/packages
