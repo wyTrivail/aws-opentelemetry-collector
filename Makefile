@@ -6,6 +6,19 @@ PROJECTNAME := $(shell basename "$(PWD)")
 
 GIT_SHA=$(shell git rev-parse HEAD)
 DATE=$(shell date -u +'%Y-%m-%dT%H:%M:%SZ')
+# All source code excluding any third party code and excluding the testbed.
+# This is the code that we want to run tests for and lint, staticcheck, etc.
+ALL_SRC := $(shell find . -name '*.go' \
+							-not -path './testbed/*' \
+							-not -path '*/third_party/*' \
+							-not -path './.circleci/scripts/reportgenerator/*' \
+							-not -path './pkg/devexporter/*' \
+							-type f | sort)
+# ALL_PKGS is the list of all packages where ALL_SRC files reside.
+ALL_PKGS := $(shell go list $(sort $(dir $(ALL_SRC))))
+
+GOTEST_OPT?= -short -coverprofile coverage.txt -v -race -timeout 180s
+GOTEST=go test
 
 BUILD_INFO_IMPORT_PATH=$(AOC_IMPORT_PATH)/tools/version
 
@@ -32,10 +45,6 @@ awscollector:
 package-rpm: build
 	ARCH=x86_64 DEST=build/packages/linux/amd64 tools/packaging/linux/create_rpm.sh
 	ARCH=aarch64 DEST=build/packages/linux/arm64 tools/packaging/linux/create_rpm.sh
-
-.PHONY: push-docker
-push-docker:
-	docker push mxiamxia/aws-aoc:$(VERSION)
 
 .PHONY: docker-component # Not intended to be used directly
 docker-component: check-component
@@ -72,6 +81,10 @@ docker-composite:
 .PHONY: docker-stop
 docker-stop:
 	docker stop $(shell docker ps -aq)
+
+.PHONY: test
+test:
+	echo $(ALL_PKGS) | xargs -n 10 $(GOTEST) $(GOTEST_OPT)
 
 .PHONY: clean
 clean: 
