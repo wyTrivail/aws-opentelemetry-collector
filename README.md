@@ -1,3 +1,5 @@
+[![codecov](https://codecov.io/gh/mxiamxia/aws-opentelemetry-collector/branch/master/graph/badge.svg)](https://codecov.io/gh/mxiamxia/aws-opentelemetry-collector)
+
 ### Overview
 AWS Observability Collector is Certified Amazon distribution of OpenTelemetry Collectors.
 
