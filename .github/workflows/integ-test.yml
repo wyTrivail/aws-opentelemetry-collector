@@ -6,6 +6,10 @@ on:
     branches: 
       - master
       - workflow-1
+      
+  repository_dispatch:
+    types: [dependency-build]
+
 env:
   IMAGE_NAMESPACE: josephwy
   IMAGE_NAME: awscollector
@@ -32,16 +36,45 @@ jobs:
         with:
           token: ${{secrets.CODECOV_TOKEN}}
           file: ./coverage.txt
+          
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.13
 
-    # Runs a single command using the runners shell
+    - name: Checkout aws-opentelemetry-collector
+      uses: actions/checkout@v2
+
+    - name: Checkout dev opentelemetry-collector-contrib
+      if: github.event_name == 'repository_dispatch'
+      uses: actions/checkout@v2
+      with:
+        repository: mxiamxia/opentelemetry-collector-contrib
+        ref: master
+        path: pkg/opentelemetry-collector-contrib
+
+    - name: Checkout dev opentelemetry-collector
+      if: github.event_name == 'repository_dispatch'
+      uses: actions/checkout@v2
+      with:
+        repository: mxiamxia/opentelemetry-collector
+        ref: master
+        path: pkg/opentelemetry-collector
+
+    - name: append replace statement to go.mod to build with dev repo
+      if: github.event_name == 'repository_dispatch'
+      run: |
+        echo "replace github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter => ./pkg/opentelemetry-collector-contrib/exporter/awsxrayexporter" >> go.mod
+        echo "replace go.opentelemetry.io/collector => ./pkg/opentelemetry-collector" >> go.mod
+        cat go.mod
+        ls pkg
+
     - name: Build Binaries
       run: make build
 
