@@ -5,7 +5,7 @@ on:
   push:
     branches: 
       - master
-      - workflow-1
+      - workflow
       
   repository_dispatch:
     types: [dependency-build]
