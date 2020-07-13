@@ -225,7 +225,7 @@ jobs:
   release-candidate:
     runs-on: ubuntu-latest
     if: github.event_name == 'push' # only create the artifact when there's a push, not for dispatch.
-    needs: [ec2test-ec2]
+    needs: [e2etest-ec2]
     steps:
       - name: restore cached packages
         uses: actions/cache@v2
