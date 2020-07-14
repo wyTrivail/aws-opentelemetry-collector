@@ -10,6 +10,9 @@ on:
   repository_dispatch:
     types: [dependency-build]
 
+  pull_request:
+    branches: [ master, workflow ]
+
 env:
   IMAGE_NAMESPACE: josephwy
   IMAGE_NAME: awscollector
