@@ -116,16 +116,14 @@ jobs:
           key: "${{ env.S3_LINK_TABLE_CACHE_KEY }}"
           path: task_response
 
-      - name: Generate change log
-        id: generate-change-log
+      - name: Generate release note template
+        run: sh tools/release/create-release-note.sh "`cat task_response`" "${{ needs.release-to-dockerhub.outputs.image_link }}"
+
+      - name: Generate release note
+        id: generate-release-note
         uses: release-drafter/release-drafter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Generate Release note
-        run: |
-          sh tools/release/create-release-note.sh "${{ steps.generate-change-log.outputs.body }}" "`cat task_response`" "${{ needs.release-to-dockerhub.outputs.image_link }}"
-          cat release-note
 
       - run: ls -R
 
@@ -136,6 +134,6 @@ jobs:
         with:
           tag_name: ${{ github.ref}}
           release_name: Release ${{ github.ref }}
-          body_path: release-note
+          body: "${{ steps.generate-release-note.outputs.body }}"
           draft: true
           prerelease: false
