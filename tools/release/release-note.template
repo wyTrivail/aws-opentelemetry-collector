@@ -1,12 +1,12 @@
 ## Changes
 
-{{changes}}
+__changes__
 
 ## Downloading Links
 
-{{s3-links}}
+__s3-links__
 
 ## Docker
 
-docker pull {{image-link}}
+docker pull __image-link__
 
