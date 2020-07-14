@@ -248,3 +248,8 @@ jobs:
         with:
           name: packages_artifact
           path: build/packages
+
+      - name: update release draft
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
