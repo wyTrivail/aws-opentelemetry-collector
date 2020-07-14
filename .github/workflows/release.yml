@@ -118,7 +118,7 @@ jobs:
 
       - name: Generate release note template
         run: | 
-          sh tools/release/create-release-note.sh "`cat task_response`" "${{ needs.release-to-dockerhub.outputs.image_link }}"
+          sh tools/release/create-release-note.sh "test" "${{ needs.release-to-dockerhub.outputs.image_link }}"
           cat .github/release-drafter.yml
 
       - name: Draft release
