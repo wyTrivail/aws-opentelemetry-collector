@@ -116,13 +116,24 @@ jobs:
           key: "${{ env.S3_LINK_TABLE_CACHE_KEY }}"
           path: task_response
 
-      - name: Generate release note template
-        run: | 
-          sh tools/release/create-release-note.sh "test" "${{ needs.release-to-dockerhub.outputs.image_link }}"
-          cat .github/release-drafter.yml
-
       - name: Draft release
         id: generate-release-note
         uses: release-drafter/release-drafter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decorate release note with s3 links and image link
+        run: | 
+          cat "${{ steps.generate-release-note.outputs.body }}" > release-note
+          sh tools/release/decorate-release-note.sh "release-note" "`cat task_response`" "${{ needs.release-to-dockerhub.outputs.image_link }}"
+
+      - name: Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body_path: release-note
+          draft: true
+          prerelease: false
