@@ -116,12 +116,15 @@ jobs:
           key: "${{ env.S3_LINK_TABLE_CACHE_KEY }}"
           path: task_response
 
+      - name: Generate change log
+        id: generate-change-log
+        uses: release-drafter/release-drafter@v5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Generate Release note
         run: |
-          cp .github/release-note.template release-note
-          export s3_links=`cat task_response`
-          perl -i.bak -pe 's/{{s3-links}}/$ENV{"s3_links"}/g' release-note
-          perl -i.bak -pe 's/{{image-link}}/${{ needs.release-to-dockerhub.outputs.image_link }}/g' release-note
+          sh tools/release/create-release-note.sh "${{ steps.generate-change-log.outputs.body }}" "`cat task_response`" "${{ needs.release-to-dockerhub.outputs.image_link }}"
           cat release-note
 
       - run: ls -R
