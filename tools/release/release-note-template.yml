@@ -2,11 +2,3 @@ template: |
   ## Changes
 
   $CHANGES
-
-  ## Downloading Links
-  
-  __s3-links__
-  
-  ## Docker
-  
-  docker pull __image-link__
