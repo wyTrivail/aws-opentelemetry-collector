@@ -119,21 +119,8 @@ jobs:
       - name: Generate release note template
         run: sh tools/release/create-release-note.sh "`cat task_response`" "${{ needs.release-to-dockerhub.outputs.image_link }}"
 
-      - name: Generate release note
+      - name: Draft release
         id: generate-release-note
         uses: release-drafter/release-drafter@v5
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - run: ls -R
-
-      - name: Release to github
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref}}
-          release_name: Release ${{ github.ref }}
-          body: "${{ steps.generate-release-note.outputs.body }}"
-          draft: true
-          prerelease: false
