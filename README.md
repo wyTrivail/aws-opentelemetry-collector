@@ -41,6 +41,11 @@ make docker-stop
 * CloudWatch - aws console
 
 
+### Build Binary
+```
+make build
+```
+
 ###  Build RPM
 ```
 make package-rpm
