@@ -1,0 +1,29 @@
+name: EC2 Cleaner
+
+on:
+  schedule:
+    - cron: "0 */1 * * *"
+
+jobs:
+  clean-old-ec2:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Give version number here in case we need to use it.
+      run: |
+        mkdir -p build/packages
+        cp VERSION build/packages/
+
+    - name: Configure AWS Credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
+        aws-region: us-west-2
+
+    - name: Clean old ec2 instances
+      uses: wyTrivail/aocintegtest@master
+      with:
+        task: EC2Clean
+ 

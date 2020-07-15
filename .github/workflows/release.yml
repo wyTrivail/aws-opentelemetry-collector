@@ -2,9 +2,9 @@ name: Release
 
 # listen on tag with name like v1.0.0
 on:
-  create:
-    tag:
-      - "/^v([0-9])+.([0-9])+.([0-9])+.*/"
+  push:
+    tags:
+      - v*
 
 env:
   IMAGE_NAMESPACE: josephwy
@@ -23,7 +23,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: integ-test.yml
+          workflow: test.yml
           commit: ${{ github.sha }}
           name: packages_artifact
           path: build/packages
@@ -110,29 +110,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Restore the S3 link table from cache
-        uses: actions/cache@v2
+      - name: Draft release
+        id: generate_release_note
+        uses: release-drafter/release-drafter@v5.11.0
         with:
-          key: "${{ env.S3_LINK_TABLE_CACHE_KEY }}"
-          path: task_response
-
-      - name: Generate Release note
-        run: |
-          cp .github/release-note.template release-note
-          export s3_links=`cat task_response`
-          perl -i.bak -pe 's/{{s3-links}}/$ENV{"s3_links"}/g' release-note
-          perl -i.bak -pe 's/{{image-link}}/${{ needs.release-to-dockerhub.outputs.image_link }}/g' release-note
-          cat release-note
-
-      - run: ls -R
-
-      - name: Release to github
-        uses: actions/create-release@v1
+          publish: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref}}
-          release_name: Release ${{ github.ref }}
-          body_path: release-note
-          draft: false
-          prerelease: false
