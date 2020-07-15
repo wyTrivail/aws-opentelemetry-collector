@@ -56,4 +56,8 @@ make docker-build
 make docker-push
 ```
 
+### Build Binary
+```
+make build
+```
 
