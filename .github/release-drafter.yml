@@ -5,11 +5,10 @@ template: |
 
   ## Downloading
 
-  | **Arch** | **OS** | **Link** |
-
-  | AMD64 | AMAZONLINUX | https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/amd64/v$RESOLVED_VERSION/aws-opentelemetry-collector.rpm |
-  | ARM64 | AMAZONLINUX | https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/arm64/v$RESOLVED_VERSION/aws-opentelemetry-collector.rpm |
-
+  | ARCH  | OS          | LINK                                                                                                                               |   |   |
+  |-------|-------------|------------------------------------------------------------------------------------------------------------------------------------|---|---|
+  | AMD64 | AMAZONLINUX | https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/amd64/v$RESOLVED_VERSION/aws-opentelemetry-collector.rpm |   |   |
+  | ARM64 | AMAZONLINUX | https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/arm64/v$RESOLVED_VERSION/aws-opentelemetry-collector.rpm |   |   |
 
   ## Docker
   
