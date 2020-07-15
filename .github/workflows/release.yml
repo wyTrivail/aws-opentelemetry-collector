@@ -110,30 +110,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       
-      - name: Restore the S3 link table from cache
-        uses: actions/cache@v2
-        with:
-          key: "${{ env.S3_LINK_TABLE_CACHE_KEY }}"
-          path: task_response
-
       - name: Draft release
         id: generate_release_note
         uses: release-drafter/release-drafter@v5.11.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Decorate release note with s3 links and image link
-        run: | 
-          echo "${{ steps.generate_release_note.outputs.body }}" > release-note
-          sh tools/release/decorate-release-note.sh "release-note" "`cat task_response`" "${{ needs.release-to-dockerhub.outputs.image_link }}"
-
-      - name: Release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body_path: release-note
-          draft: true
-          prerelease: false
+          publish: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
