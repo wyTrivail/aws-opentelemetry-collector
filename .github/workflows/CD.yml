@@ -99,7 +99,7 @@ jobs:
       - uses: actions/checkout@v2
      
       - name: Generate release-note
-        run: tools/release/generate-release-note.sh "`cat build/packages/VERSION`"
+        run: sh tools/release/generate-release-note.sh "`cat build/packages/VERSION`"
         
       - name: Create release
         uses: actions/create-release@v1
