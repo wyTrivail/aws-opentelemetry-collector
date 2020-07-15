@@ -5,8 +5,12 @@ template: |
 
   ## Downloading
 
-  __s3-links__
+  | **Arch** | **OS** | **Link** |
+
+  | AMD64 | AMAZONLINUX | https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/amd64/v$RESOLVED_VERSION/aws-opentelemetry-collector.rpm |
+  | ARM64 | AMAZONLINUX | https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/arm64/v$RESOLVED_VERSION/aws-opentelemetry-collector.rpm |
+
 
   ## Docker
   
-  docker pull __image-link__
+  docker pull josephwy/awscollector:v$RESOLVED_VERSION
