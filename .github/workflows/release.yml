@@ -117,14 +117,14 @@ jobs:
           path: task_response
 
       - name: Draft release
-        id: generate-release-note
+        id: generate_release_note
         uses: release-drafter/release-drafter@v5.11.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Decorate release note with s3 links and image link
         run: | 
-          cat "${{ steps.generate-release-note.outputs.body }}" > release-note
+          echo "${{ steps.generate_release_note.outputs.body }}" > release-note
           sh tools/release/decorate-release-note.sh "release-note" "`cat task_response`" "${{ needs.release-to-dockerhub.outputs.image_link }}"
 
       - name: Release
