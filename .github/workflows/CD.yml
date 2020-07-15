@@ -1,4 +1,4 @@
-name: Release
+name: CD
 
 # listen on tag with name like v1.0.0
 on:
@@ -23,7 +23,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: test.yml
+          workflow: CI.yml
           commit: ${{ github.sha }}
           name: packages_artifact
           path: build/packages
@@ -66,19 +66,9 @@ jobs:
           task: S3Release
           stack: RELEASE
 
-      - run: ls -R
-
-      - name: Cache the S3 link table
-        uses: actions/cache@v2
-        with:
-          key: "${{ env.S3_LINK_TABLE_CACHE_KEY }}"
-          path: task_response
-
   release-to-dockerhub:
     runs-on: ubuntu-latest
     needs: release-checking
-    outputs:
-      image_link: ${{ steps.push-to-dockerhub.outputs.image_link }}
     steps:
       - name: Restore cached packages
         uses: actions/cache@v2
@@ -101,19 +91,23 @@ jobs:
           docker tag $IMAGE_NAME $IMAGE_NAMESPACE/$IMAGE_NAME:latest
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:latest
-          echo "::set-output name=image_link::$IMAGE_NAMESPACE/$IMAGE_NAME:$TAG"
-
 
   release-to-github:
     runs-on: ubuntu-latest
     needs: [release-to-s3, release-to-dockerhub]
     steps:
       - uses: actions/checkout@v2
-      
-      - name: Draft release
-        id: generate_release_note
-        uses: release-drafter/release-drafter@v5.11.0
-        with:
-          publish: true
+     
+      - name: Generate release-note
+        run: tools/release/generate-release-note.sh "`cat build/packages/VERSION`"
+        
+      - name: Create release
+        uses: actions/create-release@v1
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body_path: release-note
+          draft: true
+          prerelease: true

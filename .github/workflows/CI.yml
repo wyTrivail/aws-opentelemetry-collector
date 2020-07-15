@@ -1,17 +1,17 @@
-name: Test
+name: CI
 
-# listen on any branch
 on:
   push:
     branches: 
       - master
-      - workflow
+      - workflow-2
       
+  # from collector and contrib repo
   repository_dispatch:
     types: [dependency-build]
 
   pull_request:
-    branches: [ master, workflow ]
+    branches: [ master, workflow-2 ]
 
 env:
   IMAGE_NAMESPACE: josephwy
@@ -237,7 +237,7 @@ jobs:
           path: build/packages
           key: "cached_packages_${{ github.run_id }}"
 
-      - name: remove the run id from version
+      - name: prepare production version
         run: |
           Version=`cat build/packages/VERSION | awk -F "-" '{print $1}'`
           echo $Version > build/packages/VERSION
@@ -248,9 +248,3 @@ jobs:
         with:
           name: packages_artifact
           path: build/packages
-
-      - name: update release note draft
-        id: generate_release_note
-        uses: release-drafter/release-drafter@v5.11.0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
