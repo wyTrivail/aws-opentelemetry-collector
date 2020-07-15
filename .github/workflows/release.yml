@@ -23,7 +23,7 @@ jobs:
         uses: dawidd6/action-download-artifact@v2
         with:
           github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: integ-test.yml
+          workflow: test.yml
           commit: ${{ github.sha }}
           name: packages_artifact
           path: build/packages

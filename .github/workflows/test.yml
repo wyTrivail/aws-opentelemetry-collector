@@ -1,4 +1,4 @@
-name: Integ-test
+name: Test
 
 # listen on any branch
 on:
