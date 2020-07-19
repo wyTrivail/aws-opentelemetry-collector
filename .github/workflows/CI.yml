@@ -129,7 +129,7 @@ jobs:
 
       - name: Create msi file using candle and light
         run: |
-          candle -arch x64  .\build\tools\packaging\windows\aws-opentelemetry-collector.wxs
+          candle -arch x64  .\tools\packaging\windows\aws-opentelemetry-collector.wxs
           light .\aws-opentelemetry-collector.wixobj
 
 

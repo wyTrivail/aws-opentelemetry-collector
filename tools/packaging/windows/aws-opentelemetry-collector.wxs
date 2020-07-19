@@ -52,7 +52,7 @@ Platform="x64"
     <DirectoryRef Id="INSTALLDIR">
     <Component Id="ApplicationComponent" Guid="5f344c26-c8f5-4a10-83c0-0651399fb8ff" Win64='yes'>
     <File Id="ExecutableFile" Name="aoc_windows_amd64.exe" KeyPath="yes" Source="build/windows/aoc_windows_amd64"/>
-    <File Id="DefaultConfigFile" Name="config.yaml" Source="./build/config.yaml" />
+    <File Id="DefaultConfigFile" Name="config.yaml" Source="./config.yaml" />
     <ServiceInstall
 Id="Sevice"
 Name="AOCAgent"
@@ -74,19 +74,19 @@ Remove="uninstall"
 Wait="yes" />
     </Component>
     <Component Id='Ctl' Guid='dc332e07-822a-495c-8c88-281e9c6d753e' Win64='yes'>
-    <File Source='./build/tools/ctl/windows/aws-opentelemetry-collector-ctl.ps1' KeyPath='yes'/>
+    <File Source='./tools/ctl/windows/aws-opentelemetry-collector-ctl.ps1' KeyPath='yes'/>
     </Component>
     <Component Id='AOCAGENT_VERSION' Guid='f4ddf7bf-48fc-41f6-a914-4153a7cf0afc' Win64='yes'>
-    <File Source='./build/VERSION' KeyPath='yes'/>
+    <File Source='./VERSION' KeyPath='yes'/>
     </Component>
     <Component Id='LICENSE' Guid='ac70ef6c-8ec4-4a91-8059-2c18543df863' Win64='yes'>
-    <File Source='./build/LICENSE' KeyPath='yes'/>
+    <File Source='./LICENSE' KeyPath='yes'/>
     </Component>
     </DirectoryRef>
 
     <DirectoryRef Id="Config">
     <Component Id='CommonConfigYML' Guid='293f73c5-1f51-4e65-86e3-97425ec75c94' Win64='yes' NeverOverwrite='yes' Permanent='yes'>
-    <File Source='./build/config.yaml' KeyPath='yes'/>
+    <File Source='./config.yaml' KeyPath='yes'/>
     </Component>
     </DirectoryRef>
 
