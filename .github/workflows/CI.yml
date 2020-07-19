@@ -109,6 +109,12 @@ jobs:
           key: "cached_binaries_${{ github.run_id }}"
           path: build
 
+      - name: restore cached binaries
+          uses: actions/cache@v2
+          with:
+            key: "cached_binaries_${{ github.run_id }}"
+            path: build
+
       - name: Display structure of downloaded files
         run: ls -R
 
