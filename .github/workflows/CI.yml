@@ -100,6 +100,22 @@ jobs:
           key: "cached_rpms_${{ github.run_id }}"
           path: build/packages
 
+  msi-packaging:
+    name: Windows packaging
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          key: "cached_binaries_${{ github.run_id }}"
+          path: build
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: check the working directory
+        run: pwd
+
   packaging-image:
     runs-on: ubuntu-latest
     needs: build
