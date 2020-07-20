@@ -119,6 +119,13 @@ jobs:
           candle -arch x64  .\tools\packaging\windows\aws-opentelemetry-collector.wxs
           light .\aws-opentelemetry-collector.wixobj
 
+      - name: Upload the msi
+        uses: actions/upload-artifact@v2
+        with:
+          name: msi_artifact
+          path: aws-opentelemetry-collector.msi
+
+
   packaging-rpm:
     runs-on: ubuntu-latest
     needs: build
