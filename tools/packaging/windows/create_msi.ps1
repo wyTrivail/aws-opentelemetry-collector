@@ -12,4 +12,6 @@ if(-Not (test-path "C:\Program Files (x86)\WiX Toolset v3.11\bin")){
 # create msi
 candle -arch x64  .\tools\packaging\windows\aws-opentelemetry-collector.wxs
 light .\aws-opentelemetry-collector.wixobj
-mv -f
+
+# mv msi the build folder
+mv aws-opentelemetry-collector.msi .\build\packages\windows\amd64\
