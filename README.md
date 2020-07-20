@@ -58,15 +58,15 @@ wget https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/a
 ```
 2. Install the package. If you downloaded an RPM package on a Linux server, change to the directory containing the package and enter the following:  
 ```
-sudo rpm -U ./amazon-cloudwatch-agent.rpm
+sudo rpm -U --force ./aws-opentelemetry-collector.rpm
 ```
 If you downloaded a DEB package on a Linux server, change to the directory containing the package and enter the following:
 ```
-sudo dpkg -i -E ./amazon-cloudwatch-agent.deb
+sudo dpkg -i -E ./aws-opentelemetry-collector.deb
 ```
 If you downloaded an MSI package on a server running Windows Server, change to the directory containing the package and enter the following:
 ```
-msiexec /i amazon-cloudwatch-agent.msi
+msiexec /i aws-opentelemetry-collector.msi
 ```
 3. Run AOC on the host with the provided ctl script. The config.yaml is optional, if it is not provided the default [config](https://github.com/mxiamxia/aws-opentelemetry-collector/blob/master/config.yaml) will be applied.
 ```
