@@ -82,7 +82,7 @@
   }
 
   aoc_preun() {
-    cwa_stop
+    aoc_stop
     if [ "${SYSTEMD}" = 'true' ]; then
       systemctl disable aws-opentelemetry-collector.service
       systemctl daemon-reload

@@ -1,10 +1,15 @@
 # get the version
-$version = Get-Content -Path ./sVERSION -TotalCount 1 | Out-String
-$version = $version.TrimEnd("`n")
+$Version = Get-Content -Path ./VERSION -TotalCount 1 | Out-String
+$Version = $Version.TrimEnd("`n")
+
+# Install the required software
+if(-Not (test-path "C:\Program Files (x86)\WiX Toolset v3.11\bin")){
+    choco install wixtoolset -y
+    echo "::add-path::$WIX\\bin"
+    echo "::add-path::C:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
+}
 
 # create msi
-../wix311-binaries/candle.exe -ext ../wix311-binaries/WixUtilExtension.dll ./amazon-cloudwatch-agent.wxs
-../wix311-binaries/light.exe -ext ../wix311-binaries/WixUtilExtension.dll ./amazon-cloudwatch-agent.wixobj
-
-# upload to s3
-aws s3 cp ./amazon-cloudwatch-agent.msi "s3://build-msi-bucket/$version/amazon-cloudwatch-agent.msi" --acl public-read
+candle -arch x64  .\tools\packaging\windows\aws-opentelemetry-collector.wxs
+light .\aws-opentelemetry-collector.wixobj
+mv -f

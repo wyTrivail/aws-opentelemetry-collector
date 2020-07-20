@@ -36,15 +36,26 @@ build:
 	GOOS=darwin GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o ./build/darwin/aoc_darwin_amd64 ./cmd/awscollector
 	GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o ./build/linux/aoc_linux_x86_64 ./cmd/awscollector
 	GOOS=linux GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o ./build/linux/aoc_linux_aarch64 ./cmd/awscollector
+	GOOS=windows GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o ./build/windows/aoc_windows_amd64 ./cmd/awscollector
 
 .PHONY: awscollector
 awscollector:
 	GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o ./bin/awscollector_$(GOOS)_$(GOARCH) ./cmd/awscollector
+	GOOS=windows GOARCH=amd64 EXTENSION=.exe $(GOBUILD) $(LDFLAGS) -o ./bin/windows/aoc_windows_amd64.exe ./cmd/awscollector
 
 .PHONY: package-rpm
 package-rpm: build
 	ARCH=x86_64 DEST=build/packages/linux/amd64 tools/packaging/linux/create_rpm.sh
 	ARCH=aarch64 DEST=build/packages/linux/arm64 tools/packaging/linux/create_rpm.sh
+
+.PHONY: package-deb
+package-deb: build
+	ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
+	ARCH=arm64 TARGET_SUPPORTED_ARCH=aarch64 DEST=build/packages/debian/arm64 tools/packaging/debian/create_deb.sh
+
+.PHONY: push-docker
+push-docker:
+	docker push mxiamxia/aws-aoc:$(VERSION)
 
 .PHONY: docker-component # Not intended to be used directly
 docker-component: check-component
@@ -87,5 +98,5 @@ test:
 	echo $(ALL_PKGS) | xargs -n 10 $(GOTEST) $(GOTEST_OPT)
 
 .PHONY: clean
-clean: 
+clean:
 	rm -rf ./build

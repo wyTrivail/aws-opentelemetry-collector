@@ -4,6 +4,7 @@ import (
 	"aws-observability.io/collector/pkg/defaultcomponents"
 	"aws-observability.io/collector/pkg/logger"
 	"aws-observability.io/collector/tools/version"
+	"github.com/pkg/errors"
 	"github.com/spf13/viper"
 	"go.opentelemetry.io/collector/config"
 	"go.opentelemetry.io/collector/config/configmodels"
@@ -48,15 +49,26 @@ func main() {
 		GitHash:  version.GitHash,
 	}
 
-	svc, err := service.New(service.Parameters{
+	if err := run(service.Parameters{
 		Factories:            factories,
 		ApplicationStartInfo: info,
 		ConfigFactory:        cfgFactory,
-		LoggingHooks:         []func(entry zapcore.Entry) error{lumberHook},
-	})
-	handleErr("Failed to construct the application", err)
+		LoggingHooks:         []func(entry zapcore.Entry) error{lumberHook}}); err != nil {
+		log.Fatal(err)
+	}
 
-	err = svc.Start()
-	handleErr("Application run finished with error", err)
+}
 
+func runInteractive(params service.Parameters) error {
+	app, err := service.New(params)
+	if err != nil {
+		return errors.Wrap(err, "failed to construct the application")
+	}
+
+	err = app.Start()
+	if err != nil {
+		return errors.Wrap(err, "application run finished with error: %v")
+	}
+
+	return nil
 }

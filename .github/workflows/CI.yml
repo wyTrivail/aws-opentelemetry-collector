@@ -76,6 +76,57 @@ jobs:
         key: "cached_binaries_${{ github.run_id }}"
         path: build
 
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: binary_artifacts
+        path: build
+
+  msi-packaging:
+    name: Windows packaging
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: restore cached binaries
+        uses: actions/cache@v2
+        with:
+          key: "cached_binaries_${{ github.run_id }}"
+          path: build
+
+      - name: Download built artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: binary_artifacts
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: check the working directory
+        run: pwd
+
+      - name: Install wix
+        run: choco install wixtoolset -y
+
+      - name: Prepare PATH
+        shell: bash
+        run: |
+          echo "::add-path::$WIX\\bin"
+          echo "::add-path::C:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
+
+      - name: Create msi file using candle and light
+        run: |
+          candle -arch x64  .\tools\packaging\windows\aws-opentelemetry-collector.wxs
+          light .\aws-opentelemetry-collector.wixobj
+
+      - name: Upload the msi
+        uses: actions/upload-artifact@v2
+        with:
+          name: msi_artifact
+          path: aws-opentelemetry-collector.msi
+
+
   packaging-rpm:
     runs-on: ubuntu-latest
     needs: build
@@ -88,6 +139,9 @@ jobs:
         with:
           key: "cached_binaries_${{ github.run_id }}"
           path: build
+
+      - name: Display structure of downloaded files
+        run: ls -R
           
       - name: Build RPM
         run: |

@@ -8,9 +8,14 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
-const logfile = "/opt/aws/aws-opentelemetry-collector/logs/aws-opentelemetry-collector.log"
+var (
+	winLogfilePath   = "C:\\ProgramData\\Amazon\\AOCAgent\\Logs\\aws-opentelemetry-collector.log"
+	linuxLogfilePath = "/opt/aws/aws-opentelemetry-collector/logs/aws-opentelemetry-collector.log"
+)
+var logfile = getLogFilePath()
 
 var lumberjackLogger = &lumberjack.Logger{
 	Filename:   logfile,
@@ -42,4 +47,13 @@ func SetupErrorLogger() {
 		writer = os.Stderr
 	}
 	log.SetOutput(writer)
+}
+
+//this method retuns the log file path depending on the OS
+func getLogFilePath() string {
+	if runtime.GOOS == "windows" {
+		return winLogfilePath
+	} else {
+		return linuxLogfilePath
+	}
 }
