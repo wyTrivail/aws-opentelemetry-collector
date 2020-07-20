@@ -35,7 +35,7 @@ Platform="x64"
     <Directory Id="TARGETDIR" Name="SourceDir">
     <Directory Id='ProgramFiles64Folder'>
     <Directory Id='PFilesAmazon' Name='Amazon'>
-    <Directory Id='INSTALLDIR' Name='AOCAgent'/>
+    <Directory Id='INSTALLDIR' Name='AwsOpentelemetryCollector'/>
     </Directory>
     </Directory>
 
