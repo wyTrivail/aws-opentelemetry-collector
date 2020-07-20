@@ -127,6 +127,34 @@ jobs:
           path: aws-opentelemetry-collector.msi
 
 
+  packaging-deb:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      # Build and archive debs into cache.
+      - uses: actions/checkout@v2
+
+      - name: restore cached binaries
+        uses: actions/cache@v2
+        with:
+          key: "cached_binaries_${{ github.run_id }}"
+          path: build
+
+      - name: Display structure of downloaded files
+        run: ls -R
+
+      - name: Build Debs
+        run: |
+          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
+          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
+
+      - name: Cache Deb
+        uses: actions/cache@v2
+        with:
+          key: "cached_debs_${{ github.run_id }}"
+          path: build/packages
+
+
   packaging-rpm:
     runs-on: ubuntu-latest
     needs: build
