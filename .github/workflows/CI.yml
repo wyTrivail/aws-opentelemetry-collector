@@ -75,6 +75,12 @@ jobs:
         key: "cached_binaries_${{ github.run_id }}"
         path: build
 
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: binary_artifacts
+        path: build
+
   msi-packaging:
     name: Windows packaging
     needs: build
@@ -87,6 +93,11 @@ jobs:
         with:
           key: "cached_binaries_${{ github.run_id }}"
           path: build
+
+      - name: Download built artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: binary_artifacts
 
       - name: Display structure of downloaded files
         run: ls -R
