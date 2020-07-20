@@ -54,10 +54,10 @@ func (t *EmfTranslator) TranslateOtToCWMetric(rm *pdata.ResourceMetrics, config 
 		if ilm.IsNil() {
 			continue
 		}
-		if ilm.InstrumentationLibrary().IsNil() {
-			continue
+		if !ilm.InstrumentationLibrary().IsNil() {
+			namespace = ilm.InstrumentationLibrary().Name()
 		}
-		namespace = ilm.InstrumentationLibrary().Name()
+		namespace = "cw-otel"
 		metrics := ilm.Metrics()
 		for k := 0; k < metrics.Len(); k++ {
 			metric := metrics.At(k)
@@ -99,7 +99,13 @@ func (t *EmfTranslator) getMeasurements(metric *pdata.Metric, namespace string) 
 
 	// TODO: saparate Int64 and Double Datapoint
 	// get all int64 datapoints
-	idp := metric.Int64DataPoints()
+	//var idp interface{}
+	//if metric.Int64DataPoints().Len() != 0 {
+	idp := metric.DoubleDataPoints()
+	//} else {
+	//	idp = metric.DoubleDataPoints()
+	//}
+	//idp := getMetricDp(metric)
 	for m := 0; m < idp.Len(); m++ {
 		dp := idp.At(m)
 		if dp.IsNil() {
@@ -117,10 +123,11 @@ func (t *EmfTranslator) getMeasurements(metric *pdata.Metric, namespace string) 
 		})
 		fieldsPairs[mDesc.Name()] = dp.Value()
 		timestamp := time.Now().UnixNano() / int64(time.Millisecond)
-		metricVal := t.calculateRate(fieldsPairs, dp.Value(), timestamp)
-		if metricVal == nil {
-			return result, nil
-		}
+		//metricVal := t.calculateRate(fieldsPairs, dp.Value(), timestamp)
+		metricVal := dp.Value()
+		//if metricVal == nil {
+		//	return result, nil
+		//}
 		fieldsPairs[mDesc.Name()] = metricVal
 		fmt.Println(fmt.Sprintf("%s%d", "MetricValSent=================", metricVal))
 		// timestamp := dp.StartTime() / 1e6
@@ -146,7 +153,7 @@ func (t *EmfTranslator) getMeasurements(metric *pdata.Metric, namespace string) 
 }
 
 // rate is calculated by valDelta / timeDelta
-func (t *EmfTranslator) calculateRate(fields map[string]interface{}, val int64, timestamp int64) interface{} {
+func (t *EmfTranslator) calculateRate(fields map[string]interface{}, val float64, timestamp int64) interface{} {
 	keys := make([]string, 0, len(fields))
 	var b bytes.Buffer
 	var metricRate float64
@@ -158,6 +165,9 @@ func (t *EmfTranslator) calculateRate(fields map[string]interface{}, val int64, 
 	for _, k := range keys {
 		switch v := fields[k].(type) {
 		case int64:
+			b.WriteString(k)
+			continue
+		case float64:
 			b.WriteString(k)
 			continue
 		case string:
@@ -176,7 +186,7 @@ func (t *EmfTranslator) calculateRate(fields map[string]interface{}, val int64, 
 	if state, ok := t.currentState.Get(hashStr); ok {
 		prevStats := state.(*rateState)
 		deltaTime := timestamp - prevStats.timestamp
-		deltaVal := val - prevStats.value.(int64)
+		deltaVal := val - prevStats.value.(float64)
 		fmt.Println(fmt.Sprintf("metric delta=================%d", deltaVal))
 		if deltaTime > MinTimeDiff && deltaVal >= 0 {
 			metricRate = float64(deltaVal*1e3) / float64(deltaTime)

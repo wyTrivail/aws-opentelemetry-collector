@@ -77,6 +77,7 @@ func (cwl *cwlClient) pushMetricsData(
 	md pdata.Metrics,
 ) (int, error) {
 	imd := pdatautil.MetricsToInternalMetrics(md)
+
 	cwl.logger.Info("EMFMetricsExporter", zap.Int("#metrics count", imd.MetricCount()))
 	rms := imd.ResourceMetrics()
 	cwMetricLists := []*translator.CWMetrics{}
