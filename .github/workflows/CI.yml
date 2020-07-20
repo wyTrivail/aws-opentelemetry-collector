@@ -153,6 +153,12 @@ jobs:
           key: "cached_debs_${{ github.run_id }}"
           path: build/packages
 
+      - name: Upload the deb
+        uses: actions/upload-artifact@v2
+        with:
+          name: deb_artifact
+          path: build/packages
+
 
   packaging-rpm:
     runs-on: ubuntu-latest
