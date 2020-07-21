@@ -98,9 +98,6 @@ jobs:
       - name: Display structure of downloaded files
         run: ls -R
 
-      - name: Install wix
-        run: choco install wixtoolset -y
-
       - name: Create msi file using candle and light
         run: .\tools\packaging\windows\create_msi.ps1
 
