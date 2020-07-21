@@ -96,7 +96,7 @@ jobs:
           path: build
 
       - name: Display structure of downloaded files
-        run: dir /s /b /o:gn $WIX\bin
+        run: dir $WIX\bin /s
 
       - name: Create msi file using candle and light
         run: |
