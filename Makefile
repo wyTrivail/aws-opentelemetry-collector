@@ -61,6 +61,7 @@ push-docker:
 docker-component: check-component
 	GOOS=linux $(MAKE) $(COMPONENT)
 	cp ./bin/$(COMPONENT)_$(GOOS)_$(GOARCH) ./cmd/$(COMPONENT)/$(COMPONENT)
+	cp ./config.yaml ./cmd/$(COMPONENT)/
 	docker build -t $(DOCKER_NAMESPACE)/$(COMPONENT):$(VERSION) ./cmd/$(COMPONENT)/
 	rm ./cmd/$(COMPONENT)/$(COMPONENT)
 

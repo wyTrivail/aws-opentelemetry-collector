@@ -97,10 +97,8 @@ jobs:
         run: ls -R
 
       - name: Create msi file using candle and light
-        run: |
-          echo "::add-path::$WIX\\bin"
-          echo "::add-path::C:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
-          .\tools\packaging\windows\create_msi.ps1
+        run: .\tools\packaging\windows\create_msi.ps1
+
       - name: Upload the msi
         uses: actions/upload-artifact@v2
         with:
@@ -127,7 +125,6 @@ jobs:
         run: |
           ARCH=x86_64 DEST=build/packages/linux/amd64 tools/packaging/linux/create_rpm.sh
           ARCH=aarch64 DEST=build/packages/linux/arm64 tools/packaging/linux/create_rpm.sh
-
       - name: Cache rpms
         uses: actions/cache@v2
         with:
@@ -152,7 +149,6 @@ jobs:
           mkdir -p build/image-build/awscollector
           cp cmd/awscollector/Dockerfile build/image-build/
           cp build/linux/aoc_linux_x86_64 build/image-build/awscollector/
-
       - name: Build Image
         run: docker build -t "awscollector" build/image-build
 
@@ -237,7 +233,6 @@ jobs:
           docker load < build/packages/awscollector.tar
           docker tag $IMAGE_NAME $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
-
   e2etest-ec2:
     runs-on: ubuntu-latest
     needs: [e2etest-release]
