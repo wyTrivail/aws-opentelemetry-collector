@@ -1,5 +1,5 @@
 # Install the required software
-
+mkdir .\build\packages
 choco install wixtoolset --force -y
 $env:Path += ";C:\Program Files (x86)\WiX Toolset v3.11\bin"
 refreshenv
