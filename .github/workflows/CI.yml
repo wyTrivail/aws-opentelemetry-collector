@@ -99,7 +99,10 @@ jobs:
         run: ls -R
 
       - name: Create msi file using candle and light
-        run: .\tools\packaging\windows\create_msi.ps1
+        run: |
+          echo "::add-path::$WIX\\bin"
+          echo "::add-path::C:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
+          .\tools\packaging\windows\create_msi.ps1
 
       - name: Upload the msi
         uses: actions/upload-artifact@v2
