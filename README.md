@@ -1,6 +1,7 @@
 [![codecov](https://codecov.io/gh/mxiamxia/aws-opentelemetry-collector/branch/master/graph/badge.svg)](https://codecov.io/gh/mxiamxia/aws-opentelemetry-collector)
 ![CI](https://github.com/mxiamxia/aws-opentelemetry-collector/workflows/CI/badge.svg)
 ![CD](https://github.com/mxiamxia/aws-opentelemetry-collector/workflows/CD/badge.svg)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/mxiamxia/aws-opentelemetry-collector)
 ### Overview
 AWS Observability Collector is Certified Amazon distribution of OpenTelemetry Collectors. It will fully support AWS CloudWatch Metrics, Traces and Logs with correlations and export your data from AWS to the other monitoring parterns backend services.
 
