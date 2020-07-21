@@ -3,8 +3,7 @@ name: CI
 on:
   push:
     branches:
-      - master
-      - workflow-2
+      - msipackingWorkflow
 
   # from collector and contrib repo
   repository_dispatch:
