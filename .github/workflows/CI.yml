@@ -94,7 +94,7 @@ jobs:
           path: build
 
       - name: Display structure of downloaded files
-        run: ls -R $WIX\bin
+        run: ls -R
 
       - name: Create msi file using candle and light
         run: |
