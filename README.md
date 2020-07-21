@@ -55,7 +55,7 @@ make docker-stop
 1. On a Linux server, enter the following,  
 Eg,
 ```
-wget https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/amd64/v0.1.6/aws-opentelemetry-collector.rpm
+wget https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/arm64/v0.1.7/aws-opentelemetry-collector.rpm
 ```
 2. Install the package. If you downloaded an RPM package on a Linux server, change to the directory containing the package and enter the following:  
 ```
