@@ -3,7 +3,7 @@ $Version = Get-Content -Path ./VERSION -TotalCount 1 | Out-String
 $Version = $Version.TrimEnd("`n")
 
 # create msi
-candle -arch x64  .\tools\packaging\windows\aws-opentelemetry-collector.wxs
+%wix%bin\candle -arch x64  .\tools\packaging\windows\aws-opentelemetry-collector.wxs
 light .\aws-opentelemetry-collector.wixobj
 
 # mv msi the build folder
