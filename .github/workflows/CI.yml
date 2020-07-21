@@ -3,7 +3,8 @@ name: CI
 on:
   push:
     branches:
-      - msipackingWorkflow
+      - master
+      - workflow-2
 
   # from collector and contrib repo
   repository_dispatch:
@@ -22,68 +23,70 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Set up building environment, patch the dev repo code on dispatch events.
-      - name: Set up Go 1.x
-        uses: actions/setup-go@v2
-        with:
-          go-version: ^1.13
+    # Set up building environment, patch the dev repo code on dispatch events.
+    - name: Set up Go 1.x
+      uses: actions/setup-go@v2
+      with:
+        go-version: ^1.13
 
-      - name: Checkout aws-opentelemetry-collector
-        uses: actions/checkout@v2
+    - name: Checkout aws-opentelemetry-collector
+      uses: actions/checkout@v2
 
-      - name: Checkout dev opentelemetry-collector-contrib
-        if: github.event_name == 'repository_dispatch'
-        uses: actions/checkout@v2
-        with:
-          repository: mxiamxia/opentelemetry-collector-contrib
-          ref: master
-          path: pkg/opentelemetry-collector-contrib
+    - name: Checkout dev opentelemetry-collector-contrib
+      if: github.event_name == 'repository_dispatch'
+      uses: actions/checkout@v2
+      with:
+        repository: mxiamxia/opentelemetry-collector-contrib
+        ref: master
+        path: pkg/opentelemetry-collector-contrib
 
-      - name: Checkout dev opentelemetry-collector
-        if: github.event_name == 'repository_dispatch'
-        uses: actions/checkout@v2
-        with:
-          repository: mxiamxia/opentelemetry-collector
-          ref: master
-          path: pkg/opentelemetry-collector
+    - name: Checkout dev opentelemetry-collector
+      if: github.event_name == 'repository_dispatch'
+      uses: actions/checkout@v2
+      with:
+        repository: mxiamxia/opentelemetry-collector
+        ref: master
+        path: pkg/opentelemetry-collector
 
-      - name: append replace statement to go.mod to build with dev repo
-        if: github.event_name == 'repository_dispatch'
-        run: |
-          echo "replace github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter => ./pkg/opentelemetry-collector-contrib/exporter/awsxrayexporter" >> go.mod
-          echo "replace go.opentelemetry.io/collector => ./pkg/opentelemetry-collector" >> go.mod
-          cat go.mod
-          ls pkg
-      # Unit Test and attach test coverage badge
-      - name: Unit Test
-        run: make test
+    - name: append replace statement to go.mod to build with dev repo
+      if: github.event_name == 'repository_dispatch'
+      run: |
+        echo "replace github.com/open-telemetry/opentelemetry-collector-contrib/exporter/awsxrayexporter => ./pkg/opentelemetry-collector-contrib/exporter/awsxrayexporter" >> go.mod
+        echo "replace go.opentelemetry.io/collector => ./pkg/opentelemetry-collector" >> go.mod
+        cat go.mod
+        ls pkg
 
-      - name: Upload Coverage report to CodeCov
-        uses: codecov/codecov-action@v1.0.0
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          file: ./coverage.txt
+    # Unit Test and attach test coverage badge
+    - name: Unit Test
+      run: make test
 
-      # Build and archive binaries into cache.
-      - name: Build Binaries
-        run: make build
+    - name: Upload Coverage report to CodeCov
+      uses: codecov/codecov-action@v1.0.0
+      with:
+        token: ${{secrets.CODECOV_TOKEN}}
+        file: ./coverage.txt
 
-      - name: Cache binaries
-        uses: actions/cache@v2
-        with:
-          key: "cached_binaries_${{ github.run_id }}"
-          path: build
+    # Build and archive binaries into cache.
+    - name: Build Binaries
+      run: make build
 
-      # upload the binaries to artifact as well because cache@v2 hasn't support windows
-      - name: Upload
-        uses: actions/upload-artifact@v2
-        with:
-          name: binary_artifacts
-          path: build
+    - name: Cache binaries
+      uses: actions/cache@v2
+      with:
+        key: "cached_binaries_${{ github.run_id }}"
+        path: build
+
+    # upload the binaries to artifact as well because cache@v2 hasn't support windows
+    - name: Upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: binary_artifacts
+        path: build
 
   packaging-msi:
-    runs-on: windows-latest
+    name: Windows packaging
     needs: build
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
 
@@ -125,6 +128,7 @@ jobs:
         run: |
           ARCH=x86_64 DEST=build/packages/linux/amd64 tools/packaging/linux/create_rpm.sh
           ARCH=aarch64 DEST=build/packages/linux/arm64 tools/packaging/linux/create_rpm.sh
+
       - name: Cache rpms
         uses: actions/cache@v2
         with:
@@ -148,7 +152,9 @@ jobs:
         run: |
           mkdir -p build/image-build/awscollector
           cp cmd/awscollector/Dockerfile build/image-build/
+          cp ./config.yaml build/image-build/
           cp build/linux/aoc_linux_x86_64 build/image-build/awscollector/
+
       - name: Build Image
         run: docker build -t "awscollector" build/image-build
 
@@ -192,6 +198,7 @@ jobs:
           # build a version with github run id so that we can distingush each build for integ-test
           Version="`cat VERSION`-$GITHUB_RUN_ID"
           echo $Version > build/packages/VERSION
+
       - name: Cache the packages
         uses: actions/cache@v2
         with:
@@ -233,6 +240,32 @@ jobs:
           docker load < build/packages/awscollector.tar
           docker tag $IMAGE_NAME $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
+
+
+  packaging-deb:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      # Build and archive debs into cache.
+      - uses: actions/checkout@v2
+
+      - name: restore cached binaries
+        uses: actions/cache@v2
+        with:
+          key: "cached_binaries_${{ github.run_id }}"
+          path: build
+
+      - name: Build Debs
+        run: |
+          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
+          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
+      - name: Cache Deb
+        uses: actions/cache@v2
+        with:
+          key: "cached_debs_${{ github.run_id }}"
+          path: build/packages
+
+
   e2etest-ec2:
     runs-on: ubuntu-latest
     needs: [e2etest-release]
@@ -274,6 +307,7 @@ jobs:
           Version=`cat build/packages/VERSION | awk -F "-" '{print $1}'`
           echo $Version > build/packages/VERSION
           echo $GITHUB_SHA > build/packages/GITHUB_SHA
+
       - name: upload packages as an artifact
         uses: actions/upload-artifact@v2
         with:
