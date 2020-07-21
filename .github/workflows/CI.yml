@@ -97,8 +97,7 @@ jobs:
 
       - name: Display structure of downloaded files
         run: |
-          echo "%wix%"
-          dir "%WIX%\bin" /s
+          dir "$WIX\bin" /s
 
       - name: Create msi file using candle and light
         run: |
