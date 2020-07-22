@@ -134,6 +134,30 @@ jobs:
           key: "cached_rpms_${{ github.run_id }}"
           path: build/packages
 
+  packaging-deb:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      # Build and archive debs into cache.
+      - uses: actions/checkout@v2
+
+      - name: restore cached binaries
+        uses: actions/cache@v2
+        with:
+          key: "cached_binaries_${{ github.run_id }}"
+          path: build
+
+      - name: Build Debs
+        run: |
+          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
+          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
+
+      - name: Cache Debs
+        uses: actions/cache@v2
+        with:
+          key: "cached_debs_${{ github.run_id }}"
+          path: build/packages
+
   packaging-image:
     runs-on: ubuntu-latest
     needs: build
@@ -171,7 +195,7 @@ jobs:
   e2etest-preparation:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    needs: [packaging-rpm, packaging-msi, packaging-image]
+    needs: [packaging-rpm, packaging-deb, packaging-msi, packaging-image]
     steps:
       # Archive all the packages into one, and build a unique version number for e2etesting
       - uses: actions/checkout@v2
@@ -182,6 +206,12 @@ jobs:
           key: "cached_rpms_${{ github.run_id }}"
           path: build/packages
 
+      - name: Restore cached debs
+        uses: actions/cache@v2
+        with:
+          key: "cached_debs_${{ github.run_id }}"
+          path: build/packages
+          
       - name: Restore cached image
         uses: actions/cache@v2
         with:
@@ -192,6 +222,8 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: msi_artifacts
+
+      - run: ls -R
 
       - name: Versioning for testing
         run: |
@@ -242,28 +274,6 @@ jobs:
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
 
 
-  packaging-deb:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      # Build and archive debs into cache.
-      - uses: actions/checkout@v2
-
-      - name: restore cached binaries
-        uses: actions/cache@v2
-        with:
-          key: "cached_binaries_${{ github.run_id }}"
-          path: build
-
-      - name: Build Debs
-        run: |
-          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
-          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
-      - name: Cache Deb
-        uses: actions/cache@v2
-        with:
-          key: "cached_debs_${{ github.run_id }}"
-          path: build/packages
 
 
   e2etest-ec2:
