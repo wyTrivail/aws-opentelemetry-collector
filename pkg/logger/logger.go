@@ -29,8 +29,12 @@ var lumberjackLogger = &lumberjack.Logger{
 // for processing log size and log rotation
 func GetLumberHook() func(e zapcore.Entry) error {
 	return func(e zapcore.Entry) error {
-		lumberjackLogger.Write([]byte(fmt.Sprintf("{%+v, Level:%+v, Caller:%+v, Message:%+v, Stack:%+v}\r\n",
-			e.Time, e.Level, e.Caller, e.Message, e.Stack)))
+		_, err := lumberjackLogger.Write(
+			[]byte(fmt.Sprintf("{%+v, Level:%+v, Caller:%+v, Message:%+v, Stack:%+v}\r\n",
+				e.Time, e.Level, e.Caller, e.Message, e.Stack)))
+		if err != nil {
+			return err
+		}
 		return nil
 	}
 }
@@ -40,7 +44,10 @@ func SetupErrorLogger() {
 	log.SetFlags(0)
 	var writer io.WriteCloser
 	if logfile != "" {
-		os.MkdirAll(filepath.Dir(logfile), 0755)
+		err := os.MkdirAll(filepath.Dir(logfile), 0755)
+		if err != nil {
+			log.Printf("D! fail to chmod on log file due to : %v \n", err)
+		}
 		// The codes below should not change, because the retention information has already been published to public doc.
 		writer = lumberjackLogger
 	} else {

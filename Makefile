@@ -30,6 +30,8 @@ GOOS=$(shell go env GOOS)
 GOARCH=$(shell go env GOARCH)
 DOCKER_NAMESPACE = mxiamxia
 COMPONENT=awscollector
+LINT=golangci-lint
+STATIC_CHECK=staticcheck
 
 .PHONY: build
 build:
@@ -97,6 +99,21 @@ docker-stop:
 .PHONY: test
 test:
 	echo $(ALL_PKGS) | xargs -n 10 $(GOTEST) $(GOTEST_OPT)
+
+.PHONY: lint-static-check
+lint-static-check:
+	@STATIC_CHECK_OUT=`$(STATIC_CHECK) $(ALL_PKGS) 2>&1`; \
+		if [ "$$STATIC_CHECK_OUT" ]; then \
+			echo "$(STATIC_CHECK) FAILED => static check errors:\n"; \
+			echo "$$STATIC_CHECK_OUT\n"; \
+			exit 1; \
+		else \
+			echo "Static check finished successfully"; \
+		fi
+
+.PHONY: lint
+lint: lint-static-check
+	$(LINT) run
 
 .PHONY: clean
 clean:
