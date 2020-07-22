@@ -84,7 +84,6 @@ jobs:
         path: build
 
   packaging-msi:
-    name: Windows packaging
     needs: build
     runs-on: windows-latest
     steps:
