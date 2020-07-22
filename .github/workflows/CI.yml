@@ -2,10 +2,10 @@ name: CI
 
 on:
   push:
-    branches: 
+    branches:
       - master
       - workflow-2
-      
+
   # from collector and contrib repo
   repository_dispatch:
     types: [dependency-build]
@@ -76,6 +76,7 @@ jobs:
         key: "cached_binaries_${{ github.run_id }}"
         path: build
 
+    # upload the binaries to artifact as well because cache@v2 hasn't support windows
     - name: Upload
       uses: actions/upload-artifact@v2
       with:
@@ -83,83 +84,28 @@ jobs:
         path: build
 
   packaging-msi:
-    name: Windows packaging
     needs: build
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
 
-      - name: restore cached binaries
-        uses: actions/cache@v2
-        with:
-          key: "cached_binaries_${{ github.run_id }}"
-          path: build
-
       - name: Download built artifacts
         uses: actions/download-artifact@v2
         with:
           name: binary_artifacts
-
-      - name: Display structure of downloaded files
-        run: ls -R
-
-      - name: check the working directory
-        run: pwd
-
-      - name: Install wix
-        run: choco install wixtoolset -y
-
-      - name: Prepare PATH
-        shell: bash
-        run: |
-          echo "::add-path::$WIX\\bin"
-          echo "::add-path::C:\\Program Files (x86)\\WiX Toolset v3.11\\bin"
-
-      - name: Create msi file using candle and light
-        run: |
-          candle -arch x64  .\tools\packaging\windows\aws-opentelemetry-collector.wxs
-          light .\aws-opentelemetry-collector.wixobj
-
-      - name: Upload the msi
-        uses: actions/upload-artifact@v2
-        with:
-          name: msi_artifact
-          path: aws-opentelemetry-collector.msi
-
-
-  packaging-deb:
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      # Build and archive debs into cache.
-      - uses: actions/checkout@v2
-
-      - name: restore cached binaries
-        uses: actions/cache@v2
-        with:
-          key: "cached_binaries_${{ github.run_id }}"
           path: build
 
       - name: Display structure of downloaded files
         run: ls -R
 
-      - name: Build Debs
-        run: |
-          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
-          ARCH=arm64 TARGET_SUPPORTED_ARCH=aarch64 DEST=build/packages/debian/aarch64 tools/packaging/debian/create_deb.sh
+      - name: Create msi file using candle and light
+        run: .\tools\packaging\windows\create_msi.ps1
 
-      - name: Cache Deb
-        uses: actions/cache@v2
-        with:
-          key: "cached_debs_${{ github.run_id }}"
-          path: build/packages
-
-      - name: Upload the deb
+      - name: Upload the msi
         uses: actions/upload-artifact@v2
         with:
-          name: deb_artifact
+          name: msi_artifacts
           path: build/packages
-
 
   packaging-rpm:
     runs-on: ubuntu-latest
@@ -176,16 +122,40 @@ jobs:
 
       - name: Display structure of downloaded files
         run: ls -R
-          
+
       - name: Build RPM
         run: |
           ARCH=x86_64 DEST=build/packages/linux/amd64 tools/packaging/linux/create_rpm.sh
           ARCH=aarch64 DEST=build/packages/linux/arm64 tools/packaging/linux/create_rpm.sh
-          
+
       - name: Cache rpms
         uses: actions/cache@v2
         with:
           key: "cached_rpms_${{ github.run_id }}"
+          path: build/packages
+
+  packaging-deb:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      # Build and archive debs into cache.
+      - uses: actions/checkout@v2
+
+      - name: restore cached binaries
+        uses: actions/cache@v2
+        with:
+          key: "cached_binaries_${{ github.run_id }}"
+          path: build
+
+      - name: Build Debs
+        run: |
+          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
+          ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
+
+      - name: Cache Debs
+        uses: actions/cache@v2
+        with:
+          key: "cached_debs_${{ github.run_id }}"
           path: build/packages
 
   packaging-image:
@@ -207,7 +177,7 @@ jobs:
           cp cmd/awscollector/Dockerfile build/image-build/
           cp ./config.yaml build/image-build/
           cp build/linux/aoc_linux_x86_64 build/image-build/awscollector/
-        
+
       - name: Build Image
         run: docker build -t "awscollector" build/image-build
 
@@ -225,8 +195,8 @@ jobs:
   e2etest-preparation:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    needs: [packaging-rpm, packaging-msi, packaging-image]
-    steps: 
+    needs: [packaging-rpm, packaging-deb, packaging-msi, packaging-image]
+    steps:
       # Archive all the packages into one, and build a unique version number for e2etesting
       - uses: actions/checkout@v2
 
@@ -236,11 +206,24 @@ jobs:
           key: "cached_rpms_${{ github.run_id }}"
           path: build/packages
 
+      - name: Restore cached debs
+        uses: actions/cache@v2
+        with:
+          key: "cached_debs_${{ github.run_id }}"
+          path: build/packages
+          
       - name: Restore cached image
         uses: actions/cache@v2
         with:
           key: "cached_image_${{ github.run_id }}"
           path: build/packages
+
+      - name: Download built artifacts
+        uses: actions/download-artifact@v2
+        with:
+          name: msi_artifacts
+
+      - run: ls -R
 
       - name: Versioning for testing
         run: |
@@ -274,7 +257,7 @@ jobs:
 
       - name: upload to s3
         uses: wyTrivail/aocintegtest@master
-        with: 
+        with:
           task: S3Release
 
       - name: Login Dockerhub
@@ -289,7 +272,10 @@ jobs:
           docker load < build/packages/awscollector.tar
           docker tag $IMAGE_NAME $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
-          
+
+
+
+
   e2etest-ec2:
     runs-on: ubuntu-latest
     needs: [e2etest-release]
