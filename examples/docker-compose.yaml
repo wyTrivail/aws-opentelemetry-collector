@@ -43,7 +43,7 @@ services:
   ot-metric-emitter:
     image: mxiamxia/aoc-metric-generator
     environment:
-      - OTLP_URL=http://aws-ot-collector:55680
+      - OTLP_ENDPOINT=http://aws-ot-collector:55680
     depends_on:
       - aws-ot-collector
 

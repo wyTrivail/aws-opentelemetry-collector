@@ -14,7 +14,9 @@
 
 package awsemfexporter
 
-import "go.opentelemetry.io/collector/config/configmodels"
+import (
+	"go.opentelemetry.io/collector/config/configmodels"
+)
 
 // Config defines configuration for AWS EMF exporter.
 type Config struct {
@@ -23,6 +25,8 @@ type Config struct {
 	LogGroupName string `mapstructure:"log_group_name"`
 	// LogStreamName
 	LogStreamName string `mapstructure:"log_stream_name"`
+	// CloudWatch metrics namespace
+	Namespace string `mapstructure:"namespace"`
 	// CWLogs service endpoint
 	Endpoint string `mapstructure:"endpoint"`
 	// Number of seconds before timing out a request.
@@ -41,4 +45,6 @@ type Config struct {
 	NoVerifySSL bool `mapstructure:"no_verify_ssl"`
 	// Maximum number of retries before abandoning an attempt to post data.
 	MaxRetries int `mapstructure:"max_retries"`
+	// Specifies in seconds the maximum amount of time that metrics remain in the memory buffer before being sent to the server.
+	ForceFlushInterval int64 `mapstructure:"force_flush_interval"`
 }
