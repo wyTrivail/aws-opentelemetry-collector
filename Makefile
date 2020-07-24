@@ -34,7 +34,7 @@ LINT=golangci-lint
 STATIC_CHECK=staticcheck
 
 .PHONY: build
-build: lint
+build: install-tools lint
 	GOOS=darwin GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o ./build/darwin/aoc_darwin_amd64 ./cmd/awscollector
 	GOOS=linux GOARCH=amd64 $(GOBUILD) $(LDFLAGS) -o ./build/linux/aoc_linux_x86_64 ./cmd/awscollector
 	GOOS=linux GOARCH=arm64 $(GOBUILD) $(LDFLAGS) -o ./build/linux/aoc_linux_aarch64 ./cmd/awscollector
@@ -114,6 +114,12 @@ lint-static-check:
 .PHONY: lint
 lint: lint-static-check
 	$(LINT) run
+
+.PHONY: install-tools
+install-tools:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint
+	go install github.com/jstemmer/go-junit-report
+	go install honnef.co/go/tools/cmd/staticcheck
 
 .PHONY: clean
 clean:
