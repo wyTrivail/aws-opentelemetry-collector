@@ -50,8 +50,12 @@ make docker-composite
 3. View you data in AWS console
 
     * X-Ray - aws console
-    * CloudWatch - aws console
-* [Image: image.png]  
+    * CloudWatch - aws console  
+    
+**AWS Metrics Sample Data**   
+* ![aws metrics](docs/images/metrics_sample.png)  
+**AWS Traces Sample Data**
+* ![aws traces](docs/images/traces_sample.png)  
 
 4. Stop the running AOC in Docker container
 ```
