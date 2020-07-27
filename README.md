@@ -2,26 +2,33 @@
 ![CI](https://github.com/mxiamxia/aws-opentelemetry-collector/workflows/CI/badge.svg)
 ![CD](https://github.com/mxiamxia/aws-opentelemetry-collector/workflows/CD/badge.svg)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/mxiamxia/aws-opentelemetry-collector)
+
+
 ### Overview
+
 AWS Observability Collector is Certified Amazon distribution of OpenTelemetry Collectors. It will fully support AWS CloudWatch Metrics, Traces and Logs with correlations and export your data from AWS to the other monitoring parterns backend services.
 
-## Getting Help  
+### Getting Help
 
-Use the following community resources for getting help with AWS Observability Collector. We use the GitHub issues for tracking bugs and feature requests.  
+Use the following community resources for getting help with AWS Observability Collector. We use the GitHub issues for tracking bugs and feature requests.
 
-* Ask a question in the [AWS CloudWatch Forum](https://forums.aws.amazon.com/forum.jspa?forumID=138).  
-* Open a support ticket with [AWS Support](http://docs.aws.amazon.com/awssupport/latest/user/getting-started.html).  
-* If you think you may have found a bug, open an [issue](https://github.com/mxiamxia/aws-opentelemetry-collector/issues/new).  
-* For contributing guidelines refer [CONTRIBUTING.md](https://github.com/mxiamxia/aws-opentelemetry-collector/blob/master/CONTRIBUTING.md).
+* Ask a question in the AWS CloudWatch Forum (https://forums.aws.amazon.com/forum.jspa?forumID=138).
+* Open a support ticket with AWS Support (http://docs.aws.amazon.com/awssupport/latest/user/getting-started.html).
+* If you think you may have found a bug, open an issue (https://github.com/mxiamxia/aws-opentelemetry-collector/issues/new).
+* For contributing guidelines refer CONTRIBUTING.md (https://github.com/mxiamxia/aws-opentelemetry-collector/blob/master/CONTRIBUTING.md).
 
-### Run Demos with Docker
-The provided example will bring up AOC agent instance and send Jaeger traces and OpenTelemetry Metrics to AOC. You can view Trace and Metric result on AWS X-Ray, Jaeger and CloudWatch Metric consoles. 
-#### Steps,
-1. Edit the following section in ```docker-composite.yaml``` under ```examples``` folder. add your own ```AWS_ACCESS_KEY_ID``` and ```AWS_SECRET_ACCESS_KEY``` in the config. The default region is ```us-west-2```.
-```yaml
-  # Agent
-  aws-ot-collector:
-    image: mxiamxia/awscollector:v0.1.2
+### Get Started
+
+#### Run AOC Beta Examples with Docker
+
+The provided example will run AOC Beta within Docker container. This demo also includes AWS data emitter container image that will generate OTLP format of metrics and traces data to AWS CloudWatch and X-Ray consoles.  Please follow the steps below to have a try AWS Observability Collector Beta.
+
+Steps,
+
+1. Download the source code of this repo and edit the following section in docker-composite.yaml under examples folder. Then add your own AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in the config. The default region is us-west-2 where the data will be sent to.
+```
+  # Agent aws-observability-collector:
+    image: mxiamxia/awscollector:v0.1.8
     command: ["--config=/etc/otel-agent-config.yaml", "--log-level=DEBUG"]
     environment:
       - AWS_ACCESS_KEY_ID=<set your aws key> // TO EDIT
@@ -32,36 +39,61 @@ The provided example will bring up AOC agent instance and send Jaeger traces and
       - ~/.aws:/root/.aws
     ports:
       - "1777:1777"   # pprof extension
-      - "14268"       # Jaeger receiver
       - "55679:55679" # zpages extension
       - "55680:55680" # OTLP receiver
       - "13133"       # health_check
 ```
-2. Run the following command under the package root directory
+2. Once your AWS credential has been attached into config file, run the following make command.
 ```
 make docker-composite
 ```
-3. Stop Application
+3. View you data in AWS console
+
+    * X-Ray - aws console
+    * CloudWatch - aws console
+* [Image: image.png]
+
+4. Stop the running AOC in Docker container
 ```
 make docker-stop
 ```
+#### Run AOC Beta on AWS EC2 Linux
 
-#### View result
-* X-Ray - aws console
-* Jaeger - http://localhost:16686/
-* CloudWatch - aws console
+To run AOC on AWS EC2 Linux host, you can choose to install AOC RPM on your host by the following steps.
 
-### Run Demos on AWS EC2 Linux
-#### Steps,
-1. On a Linux server, enter the following,  
-Eg,
+Steps,
+
+1. Login on AWS Linux EC2 host and download aws-observability-collector RPM with the following command.
 ```
-wget https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/arm64/v0.1.7/aws-opentelemetry-collector.rpm
+wget https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/amd64/v0.1.8/aws-opentelemetry-collector.rpm
 ```
-2. Install the package. If you downloaded an RPM package on a Linux server, change to the directory containing the package and enter the following:  
+2. Install aws-observability-collector RPM by the following command on the host
 ```
 sudo rpm -U --force ./aws-opentelemetry-collector.rpm
 ```
+3. Once RPM is installed, it will create AOC in directory /opt/aws/aws-opentelemetry-collector/
+
+[Image: image.png]
+4. We provided a control script to manage AOC. Customer can use it to Start, Stop and Check Status of AOC.
+
+    1. Start AOC with CTL script. The config.yaml is optional, if it is not provided the default config (https://github.com/mxiamxia/aws-opentelemetry-collector/blob/master/config.yaml) will be applied.  
+    ```
+        1. sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl -c </path/config.yaml> -a start
+    ```
+    2. Stop the running AOC when finish the testing.
+    ```
+        1. sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl  -a stop
+    ```
+    3. Check the status of AOC
+    ```
+        1. sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl  -a status
+    ```
+5. Test the data with the running AOC on EC2. you can run the following command on EC2 host. (Docker app has to be pre-installed)
+```
+docker run --rm -it -e "otlp_endpoint=172.17.0.1:55680" -e "otlp_instance_id=test_insance" mxiamxia/aoc-metric-generator:latest
+```
+#### Run AOC on Debian and Windows hosts,
+
 If you downloaded a DEB package on a Linux server, change to the directory containing the package and enter the following:
 ```
 sudo dpkg -i -E ./aws-opentelemetry-collector.deb
@@ -70,32 +102,28 @@ If you downloaded an MSI package on a server running Windows Server, change to t
 ```
 msiexec /i aws-opentelemetry-collector.msi
 ```
-3. Run AOC on the host with the provided ctl script. The config.yaml is optional, if it is not provided the default [config](https://github.com/mxiamxia/aws-opentelemetry-collector/blob/master/config.yaml) will be applied.
-```
-sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl -c </path/config.yaml> -a start
-```
-4. Stop the running AOC when finish the testing.
-```
-sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl  -a stop
-```
+### Build Artifacts
 
-###  Build RPM
+aws-observability-collector is an open source project, we’re looking for the contributing from all the engineers to make it better. You can build your own executable binaries per your own customization. We provide the following command for you the build your own executables.
+
+#### Build Binary
+```
+make build
+```
+#### Build RPM
 ```
 make package-rpm
 ```
-
-### Build Docker Image
+#### Build Docker Image
 ```
 make docker-build
 ```
-
-### Push Docker
+#### Push Docker
 ```
 make docker-push
 ```
 
-### Build Binary
-```
-make build
-```
+*Benchmark*
+
+aws-observability-collector is based on open-telemetry-collector. Here is the benchmark of each plugins running on AOC.
 
