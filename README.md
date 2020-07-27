@@ -23,7 +23,7 @@ Use the following community resources for getting help with AWS Observability Co
 
 The provided example will run AOC Beta within Docker container. This demo also includes AWS data emitter container image that will generate OTLP format of metrics and traces data to AWS CloudWatch and X-Ray consoles.  Please follow the steps below to have a try AWS Observability Collector Beta.
 
-Steps,
+**Steps,**
 
 1. Download the source code of this repo and edit the following section in docker-composite.yaml under examples folder. Then add your own AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY in the config. The default region is us-west-2 where the data will be sent to.
 ```
@@ -51,7 +51,7 @@ make docker-composite
 
     * X-Ray - aws console
     * CloudWatch - aws console
-* [Image: image.png]
+* [Image: image.png]  
 
 4. Stop the running AOC in Docker container
 ```
@@ -61,7 +61,7 @@ make docker-stop
 
 To run AOC on AWS EC2 Linux host, you can choose to install AOC RPM on your host by the following steps.
 
-Steps,
+**Steps,**
 
 1. Login on AWS Linux EC2 host and download aws-observability-collector RPM with the following command.
 ```
@@ -73,20 +73,21 @@ sudo rpm -U --force ./aws-opentelemetry-collector.rpm
 ```
 3. Once RPM is installed, it will create AOC in directory /opt/aws/aws-opentelemetry-collector/
 
-[Image: image.png]
+[Image: image.png]. 
+
 4. We provided a control script to manage AOC. Customer can use it to Start, Stop and Check Status of AOC.
 
-    1. Start AOC with CTL script. The config.yaml is optional, if it is not provided the default config (https://github.com/mxiamxia/aws-opentelemetry-collector/blob/master/config.yaml) will be applied.  
+    * Start AOC with CTL script. The config.yaml is optional, if it is not provided the default config (https://github.com/mxiamxia/aws-opentelemetry-collector/blob/master/config.yaml) will be applied.  
     ```
-        1. sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl -c </path/config.yaml> -a start
+        sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl -c </path/config.yaml> -a start
     ```
-    2. Stop the running AOC when finish the testing.
+    * Stop the running AOC when finish the testing.
     ```
-        1. sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl  -a stop
+        sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl  -a stop
     ```
-    3. Check the status of AOC
+    * Check the status of AOC
     ```
-        1. sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl  -a status
+        sudo /opt/aws/aws-opentelemetry-collector/bin/aws-opentelemetry-collector-ctl  -a status
     ```
 5. Test the data with the running AOC on EC2. you can run the following command on EC2 host. (Docker app has to be pre-installed)
 ```
@@ -123,7 +124,17 @@ make docker-build
 make docker-push
 ```
 
-*Benchmark*
+### Benchmark
 
 aws-observability-collector is based on open-telemetry-collector. Here is the benchmark of each plugins running on AOC.
+
+Test Component |	Receiver |	Exporter |	Max CPU Utilised |	Max Memory Utilised
+---------------|-----------|-----------|-------------------|---------------------
+OpenCensus|	opencensus	| opencensus |	34.4 |	45
+SAPM |	SAPM |	SAPM |	20.7 |	48
+AwsXray |	OTLP |	AWSXray |	41.9 |	48
+JaegerGRPC |	jaeger |	jaeger |	25.7 |	33
+OTLP |	OTLP |	OTLP |	17.2 |	33
+Zipkin |	Zipkin |	Zipkin |	45 |	33
+
 
