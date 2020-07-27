@@ -12,10 +12,10 @@ AWS Observability Collector is Certified Amazon distribution of OpenTelemetry Co
 
 Use the following community resources for getting help with AWS Observability Collector. We use the GitHub issues for tracking bugs and feature requests.
 
-* Ask a question in the AWS CloudWatch Forum (https://forums.aws.amazon.com/forum.jspa?forumID=138).
-* Open a support ticket with AWS Support (http://docs.aws.amazon.com/awssupport/latest/user/getting-started.html).
-* If you think you may have found a bug, open an issue (https://github.com/mxiamxia/aws-opentelemetry-collector/issues/new).
-* For contributing guidelines refer CONTRIBUTING.md (https://github.com/mxiamxia/aws-opentelemetry-collector/blob/master/CONTRIBUTING.md).
+* Ask a question in [AWS CloudWatch Forum](https://forums.aws.amazon.com/forum.jspa?forumID=138).
+* Open a support ticket with [AWS Support](http://docs.aws.amazon.com/awssupport/latest/user/getting-started.html).
+* If you think you may have found a bug, open an [issue](https://github.com/mxiamxia/aws-opentelemetry-collector/issues/new).
+* For contributing guidelines refer [CONTRIBUTING.md](https://github.com/mxiamxia/aws-opentelemetry-collector/blob/master/CONTRIBUTING.md).
 
 ### Get Started
 
