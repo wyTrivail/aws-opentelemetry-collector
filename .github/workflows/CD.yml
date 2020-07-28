@@ -36,6 +36,8 @@ jobs:
           running_type: candidate
           opts: "-t=DownloadCandidate -p=${{ steps.get_version.outputs.version }} -g=${{ github.sha }}"
 
+      - run: ls -R      
+
       - name: Cache packages
         uses: actions/cache@v2
         with:
@@ -66,8 +68,7 @@ jobs:
         uses: wyTrivail/aocintegtest@master
         with:
           running_type: release
-          task: S3Release
-          stack: RELEASE
+          opts: "-t=S3Release -s=RELEASE" 
 
   release-to-dockerhub:
     runs-on: ubuntu-latest
