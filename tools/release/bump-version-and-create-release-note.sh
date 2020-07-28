@@ -19,8 +19,8 @@ docker run -it -v "`pwd`":/usr/local/src/your-app ferrarimarco/github-changelog-
 	--output ${OUTPUT}
 
 # bump the version
-echo ${VERSION} > VERSION
+echo ${RELEASE_VERSION} > VERSION
 
 # create a git commit
-git add VERSION ${OUTPUT}
-git commit -m "bump version to ${VERSION}, and create release note"
+#git add VERSION ${OUTPUT}
+#git commit -m "bump version to ${VERSION}, and create release note"
