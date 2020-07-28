@@ -73,7 +73,7 @@ wget https://aws-opentelemetry-collector-release.s3.amazonaws.com/amazon_linux/a
 ```
 2. Install aws-observability-collector RPM by the following command on the host
 ```
-sudo rpm -U --force ./aws-opentelemetry-collector.rpm
+sudo rpm -Uvh  ./aws-opentelemetry-collector.rpm
 ```
 3. Once RPM is installed, it will create AOC in directory /opt/aws/aws-opentelemetry-collector/
 
