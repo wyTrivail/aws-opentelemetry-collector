@@ -26,5 +26,5 @@ jobs:
       uses: wyTrivail/aocintegtest@master
       with:
         running_type: integ-test
-        task: EC2Clean
+        opts: "-t=EC2Clean"
  
