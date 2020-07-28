@@ -255,9 +255,10 @@ jobs:
           path: build/packages
           key: "cached_packages_${{ github.run_id }}"
 
-      - name: upload to s3
+      - name: upload to s3 in the testing stack 
         uses: wyTrivail/aocintegtest@master
         with:
+          running_type: release
           task: S3Release
 
       - name: Login Dockerhub
@@ -272,9 +273,6 @@ jobs:
           docker load < build/packages/awscollector.tar
           docker tag $IMAGE_NAME $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$TAG
-
-
-
 
   e2etest-ec2:
     runs-on: ubuntu-latest
@@ -299,6 +297,7 @@ jobs:
       - name: perform integration test on EC2
         uses: wyTrivail/aocintegtest@master
         with:
+          running_type: integ-test
           task: EC2Test
 
   release-candidate:

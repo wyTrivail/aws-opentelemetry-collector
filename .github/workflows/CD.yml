@@ -63,6 +63,7 @@ jobs:
         id: release-to-s3
         uses: wyTrivail/aocintegtest@master
         with:
+          running_type: release
           task: S3Release
           stack: RELEASE
 

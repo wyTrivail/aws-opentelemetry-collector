@@ -25,5 +25,6 @@ jobs:
     - name: Clean old ec2 instances
       uses: wyTrivail/aocintegtest@master
       with:
+        running_type: integ-test
         task: EC2Clean
  
