@@ -19,20 +19,22 @@ jobs:
       - name: Checking if the related commit has passed the Soaking test
         run: echo "Checking Soaking test"
 
-      - name: Download the release artifact base on the commit hash
-        uses: dawidd6/action-download-artifact@v2
+      - name: Configure AWS Credentials, TODO change to the release account credentials
+        uses: aws-actions/configure-aws-credentials@v1
         with:
-          github_token: ${{secrets.GITHUB_TOKEN}}
-          workflow: CI.yml
-          commit: ${{ github.sha }}
-          name: packages_artifact
-          path: build/packages
+          aws-access-key-id: ${{ secrets.INTEG_TEST_AWS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.INTEG_TEST_AWS_KEY_SECRET }}
+          aws-region: us-west-2
 
-      - name: Check the version number
-        run: if [[ "refs/tags/`cat build/packages/VERSION`" != "${{ github.ref }}" ]]; then exit 1; fi
+      - name: Get the version
+        id: get_version
+        run: echo ::set-output name=version::$(echo $GITHUB_REF | cut -d / -f 3)
 
-      - name: Check the commit sha
-        run: if [[ "`cat build/packages/GITHUB_SHA`" != "${{ github.sha }}" ]]; then exit 1; fi
+      - name: download packages as release candidate from s3
+        uses: wyTrivail/aocintegtest@master
+        with:
+          running_type: candidate
+          opts: "-t=DownloadCandidate -p=${{ steps.get_version.outputs.version }} -g=${{ github.sha }}"
 
       - name: Cache packages
         uses: actions/cache@v2
