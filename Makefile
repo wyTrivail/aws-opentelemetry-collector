@@ -113,7 +113,7 @@ lint-static-check:
 
 .PHONY: lint
 lint: lint-static-check
-	$(LINT) run
+	$(LINT) run --timeout 2m
 
 .PHONY: install-tools
 install-tools:
