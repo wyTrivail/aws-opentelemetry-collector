@@ -222,6 +222,7 @@ jobs:
         uses: actions/download-artifact@v2
         with:
           name: msi_artifacts
+          path: build/packages    
 
       - run: ls -R
 
