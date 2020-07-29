@@ -150,7 +150,7 @@ jobs:
       - name: Build Debs
         run: |
           ARCH=amd64 TARGET_SUPPORTED_ARCH=x86_64 DEST=build/packages/debian/amd64 tools/packaging/debian/create_deb.sh
-          ARCH=arm64 TARGET_SUPPORTED_ARCH=aarch64 DEST=build/packages/debian/aarch64 tools/packaging/debian/create_deb.sh
+          ARCH=arm64 TARGET_SUPPORTED_ARCH=aarch64 DEST=build/packages/debian/arm64 tools/packaging/debian/create_deb.sh
 
       - name: Cache Debs
         uses: actions/cache@v2
