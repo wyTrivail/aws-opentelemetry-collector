@@ -4,14 +4,13 @@ on:
   push:
     branches:
       - master
-      - workflow-2
 
   # from collector and contrib repo
   repository_dispatch:
     types: [dependency-build]
 
   pull_request:
-    branches: [ master, workflow-2 ]
+    branches: [ master ]
 
 env:
   IMAGE_NAMESPACE: josephwy
@@ -61,9 +60,8 @@ jobs:
       run: make test
 
     - name: Upload Coverage report to CodeCov
-      uses: codecov/codecov-action@v1.0.0
+      uses: codecov/codecov-action@v1.0.12
       with:
-        token: ${{secrets.CODECOV_TOKEN}}
         file: ./coverage.txt
 
     # Build and archive binaries into cache.
