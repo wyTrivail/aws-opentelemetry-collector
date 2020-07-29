@@ -16,7 +16,8 @@ docker run -it -v "`pwd`":/usr/local/src/your-app ferrarimarco/github-changelog-
 	-t ${GITHUB_TOKEN} \
 	--since-tag ${VERSION} \
 	--future-release ${RELEASE_VERSION} \
-	--output ${OUTPUT}
+	--output ${OUTPUT} \
+	--exclude-tags bumpversion
 
 # bump the version
 echo ${RELEASE_VERSION} > VERSION
