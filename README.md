@@ -6,7 +6,7 @@
 
 ### Overview
 
-AWS Observability Collector is a certified Amazon distribution of OpenTelemetry Collectors. It will fully support AWS CloudWatch Metrics, Traces and Logs with correlations and export your data from AWS to the other monitoring parterns backend services.
+AWS Observability Collector is a certified Amazon distribution of OpenTelemetry Collector. It will fully support AWS CloudWatch Metrics, Traces and Logs with correlations and export your data from AWS to the other monitoring parterns backend services.
 
 ### Getting Help
 
