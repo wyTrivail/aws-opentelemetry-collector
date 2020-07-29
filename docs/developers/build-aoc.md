@@ -12,8 +12,6 @@ make package-rpm
 ```
 #### Build Docker Image
 ```
-#### Build Docker Image
-```
 make docker-build
 ```
 #### Push Docker
