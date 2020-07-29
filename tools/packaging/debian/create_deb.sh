@@ -90,7 +90,7 @@ ar r ${AOC_ROOT}/bin/aws-opentelemetry-collector-${ARCH}-${AGENT_VERSION}-1.deb 
 
 echo "Copy debian file to ${DEST}"
 mkdir -p ${DEST}
-mv ${AOC_ROOT}/bin/aws-opentelemetry-collector-${ARCH}-${AGENT_VERSION}-1.deb ${DEST}/aws-opentelemetry-collector-${ARCH}.deb
+mv ${AOC_ROOT}/bin/aws-opentelemetry-collector-${ARCH}-${AGENT_VERSION}-1.deb ${DEST}/aws-opentelemetry-collector.deb
 
 echo "remove working directory"
 rm -rf ${AOC_ROOT}
